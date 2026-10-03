@@ -160,8 +160,24 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .flash-up{animation:fup 1.2s ease}.flash-down{animation:fdn 1.2s ease}
 @keyframes fup{0%{background:var(--pos-soft)}100%{background:transparent}}
 @keyframes fdn{0%{background:var(--neg-soft)}100%{background:transparent}}
+.sdhd{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.sdhd .m{flex:1;min-width:0}
+.sdhd .t{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.sdhd .s{font-size:12.5px;color:var(--muted);font-weight:600}
+.sdpx{font-size:34px;font-weight:800;letter-spacing:-.05em;line-height:1.1}
+.sdgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.sdgrid .stat .v{font-size:15px}
+.trd{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.trd+.trd{border-top:1px solid var(--line)}
+.trd .m{flex:1;min-width:0}
+.trd .t{font-size:14px;font-weight:700}
+.trd .s{font-size:12px;color:var(--muted);font-weight:600;margin-top:1px}
+.trd .a{font-size:14px;font-weight:800;text-align:right}
+.pill2{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.04em;margin-right:6px;vertical-align:1px}
+.pill2.buy{background:var(--pos-soft);color:var(--pos)}.pill2.sell{background:var(--neg-soft);color:var(--neg)}.pill2.open{background:var(--s2);color:var(--muted)}
 .qprev{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--s2);font-size:13px;font-weight:600;color:var(--muted);min-height:44px}
 .qprev b{color:var(--text)}
+#tr-ticker::placeholder{text-transform:none;font-weight:500}
 
 /* ── Controls ── */
 .seg{display:flex;background:var(--s2);border-radius:13px;padding:3px;gap:2px}
@@ -353,6 +369,26 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .sw.on{box-shadow:0 0 0 2px var(--surf),0 0 0 4px var(--c)}
 .sw svg.i{width:16px;height:16px;stroke-width:3}
 
+/* Bank picker */
+.bsearch{display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border-radius:12px;background:var(--s2);color:var(--faint);margin-top:10px}
+.bsearch input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:14px;color:var(--text)}
+.blist{margin-top:8px;max-height:300px;overflow-y:auto;border-radius:16px;background:var(--s2);overscroll-behavior:contain}
+.brow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;text-align:left;font-size:14px;font-weight:600}
+.brow+.brow{border-top:1px solid var(--line)}
+.brow .bl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow.on{background:var(--acc-soft)}
+.brow .i{color:var(--acc)}
+.brow:active{background:var(--s3)}
+.logo.lt{box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.split{display:flex;gap:8px;margin-top:10px}
+.split>div{flex:1;min-width:0;background:color-mix(in srgb,var(--surf) 60%,transparent);border-radius:12px;padding:8px 10px}
+.split .k{font-size:11.5px}
+.adbal .split .v{font-size:16px;margin-top:1px;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tog{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--s2);font-size:13.5px;font-weight:600;cursor:pointer}
+.tog input{width:20px;height:20px;accent-color:var(--acc);flex-shrink:0}
+.tog-hint{font-size:12.5px;color:var(--muted);margin-top:6px;padding:0 4px}
+.tog-hint.warn{color:var(--warn)}
+
 /* Account detail */
 .adhd{display:flex;align-items:center;gap:14px;margin:4px 0 18px}
 .adhd .m{flex:1;min-width:0}
@@ -446,7 +482,9 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <button class="iconbtn" onclick="onbGo(1)" aria-label="Back"><svg class="i"><use href="#i-chevL"/></svg></button>
     <div class="onb-h">Add your first account</div>
     <div class="mut">Tap a bank or wallet, or name your own.</div>
-    <div class="banks" id="onb-banks" style="margin-top:18px"></div>
+    <div class="seg" id="onb-bcat" style="margin-top:18px"></div>
+    <label class="bsearch"><svg class="i"><use href="#i-search"/></svg><input id="onb-bq" placeholder="Search" autocomplete="off" oninput="ui.onb.q=this.value;renderOnbBanks()"></label>
+    <div class="blist" id="onb-banks"></div>
     <div class="fld"><label class="lbl" for="onb-name">Custom account</label><input class="in" id="onb-name" placeholder="e.g. BDO Savings" autocomplete="off"></div>
     <div style="flex:1;min-height:24px"></div>
     <div class="onb-foot">
@@ -506,7 +544,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
       </div>
       <div class="sec"><h2>Accounts</h2><span class="mut" style="font-size:13px;font-weight:600" id="h-acount"></span></div>
       <div class="hscroll" id="h-accts"></div>
-      <div class="sec"><h2>Investments</h2><button class="link" onclick="openStock()">Add stock</button></div>
+      <div class="sec"><h2>Investments</h2><button class="link" onclick="openTrade('buy')">Buy / add</button></div>
       <div id="h-inv"></div>
       <div class="sec"><h2>Cash flow</h2></div>
       <div class="card pad">
@@ -601,7 +639,11 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 <div class="sheet" id="sh-acct" role="dialog" aria-modal="true" aria-labelledby="ac-title">
   <div class="grab"></div>
   <div class="shd"><h3 id="ac-title">New account</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
-  <div class="fld" id="ac-banks-fld"><span class="lbl">Quick pick</span><div class="banks" id="ac-banks"></div></div>
+  <div class="fld" id="ac-banks-fld"><span class="lbl">Pick your bank or wallet</span>
+    <div class="seg" id="ac-bcat"></div>
+    <label class="bsearch"><svg class="i"><use href="#i-search"/></svg><input id="ac-bq" placeholder="Search" autocomplete="off" oninput="ui.ac.q=this.value;renderAcctForm()"></label>
+    <div class="blist" id="ac-banks"></div>
+  </div>
   <div class="fld"><label class="lbl" for="ac-name">Account name</label><input class="in" id="ac-name" placeholder="e.g. BDO Savings" autocomplete="off"></div>
   <div class="fld"><span class="lbl">Type</span><div class="chips wrap" id="ac-types"></div></div>
   <div class="fld"><span class="lbl">Color</span><div class="swatches" id="ac-colors"></div></div>
@@ -622,21 +664,29 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
   <div id="ad-list" style="margin-top:8px"></div>
 </div>
 
-<!-- Stock add/edit -->
-<div class="sheet" id="sh-stock" role="dialog" aria-modal="true" aria-labelledby="st-title">
+<!-- Stock detail -->
+<div class="sheet" id="sh-sd" role="dialog" aria-modal="true"><div class="grab"></div><div id="sd-body"></div></div>
+
+<!-- Buy / sell -->
+<div class="sheet" id="sh-trade" role="dialog" aria-modal="true" aria-labelledby="tr-title">
   <div class="grab"></div>
-  <div class="shd"><h3 id="st-title">Add stock</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
-  <div class="fld"><label class="lbl" for="st-ticker">Ticker</label><input class="in" id="st-ticker" placeholder="e.g. AAPL, NVDA, VOO" autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="stockLookup()" style="text-transform:uppercase;font-weight:700"></div>
-  <div class="qprev" id="st-prev">Type a US ticker to see its live price.</div>
+  <div class="shd"><h3 id="tr-title">Buy stock</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="seg" id="tr-types" style="margin-top:10px"></div>
+  <div class="fld" id="tr-market-fld"><span class="lbl">Market</span><div class="seg" id="tr-markets"></div></div>
+  <div class="fld" id="tr-ticker-fld"><label class="lbl" for="tr-ticker">Ticker</label><input class="in" id="tr-ticker" placeholder="e.g. AAPL, NVDA, VOO" autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="tradeLookup()" style="text-transform:uppercase;font-weight:700"></div>
+  <div class="qprev" id="tr-prev"></div>
   <div class="two fld">
-    <div><label class="lbl" for="st-shares">Shares</label><input class="in" id="st-shares" inputmode="decimal" placeholder="0.5" autocomplete="off" oninput="stockPreview()"></div>
-    <div><label class="lbl" for="st-cost">Avg cost (USD)</label><div class="money"><span>$</span><input class="in" id="st-cost" inputmode="decimal" placeholder="Optional" autocomplete="off" oninput="stockPreview()"></div></div>
+    <div><label class="lbl" for="tr-shares" id="tr-shares-lbl">Shares</label><input class="in" id="tr-shares" inputmode="decimal" placeholder="0.5" autocomplete="off" oninput="tradePreview()"></div>
+    <div><label class="lbl" for="tr-price" id="tr-price-lbl">Price per share</label><div class="money"><span id="tr-cur">$</span><input class="in" id="tr-price" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="tradePreview()"></div></div>
   </div>
-  <div class="mut" style="font-size:12.5px;margin-top:8px">Fractional shares are fine. Average cost lets cove show your gain or loss.</div>
-  <div class="btnrow">
-    <button class="btn danger" id="st-del" onclick="delStock()" aria-label="Remove stock"><svg class="i"><use href="#i-trash"/></svg></button>
-    <button class="btn" id="st-save" onclick="saveStock()">Add stock</button>
-  </div>
+  <div class="chips wrap" id="tr-quick" style="margin-top:10px"></div>
+  <div class="fld"><label class="lbl" for="tr-date">Date</label><input class="in" type="date" id="tr-date"></div>
+  <div class="fld" id="tr-acct-fld"><span class="lbl">Investment account</span><div class="chips" id="tr-accts"></div></div>
+  <div class="qprev" id="tr-total"></div>
+  <label class="tog"><input type="checkbox" id="tr-cash" onchange="ui.tr.cashTouched=true;tradePreview()"><span id="tr-cash-lbl"></span></label>
+  <div class="tog-hint" id="tr-cash-hint"></div>
+  <div class="mut" style="font-size:12.5px;margin-top:8px">This records the trade in cove. Place the actual order in your brokerage app.</div>
+  <button class="btn" id="tr-save" style="margin-top:18px" onclick="saveTrade()">Record buy</button>
 </div>
 
 <!-- Budget -->
@@ -790,8 +840,45 @@ const CCYS=[
 
 const B=(id,name,abbr,bg,type,fg='#fff')=>({id,name,abbr,bg,fg,type});
 const CASH=B('cash','Cash','CASH','#10B981','cash'), CC=B('credit','Credit Card','CC','#4B5563','credit');
+// Philippine banks, e-wallets, cards and lenders — brand tile: [name, abbr, bg, fg]
+const PH_BRANDS={
+  autosweep:['Autosweep','AS','#FFFFFF','#16A34A'],beep:['Beep','beep','#1F2A5A'],gcash:['GCash','G','#0B6BFF'],
+  gotyme:['GoTyme','GO','#00E5FF','#0B1220'],grab:['GrabPay','Grab','#00B14F'],grabloan:['Grab','Grab','#00B14F'],
+  hellomoney:['HelloMoney','hm','#E53935'],joyride:['JoyRide Pay','JR','#2B2BD9'],lazada:['Lazada','Laz','#E8257E'],
+  marcopay:['MarCoPay','MCP','#FFFFFF','#0E7C86'],mcash:['MCash','MC','#FFFFFF','#E11D2E'],maya:['Maya','maya','#000000','#3DDC84'],
+  palawanpay:['PalawanPay','P','#FFFFFF','#0B7A3B'],pandapay:['Pandapay','PP','#FF2B85'],payoneer:['Payoneer','P','#FFFFFF','#FF4800'],
+  paypal:['PayPal','PP','#003087'],peddlr:['Peddlr','Pd','#FFFFFF','#8E44AD'],raket:['Raket.PH','R','#FF7A1A'],
+  shopback:['ShopBack','SB','#FF3A1F'],shopeepay:['ShopeePay','SPay','#EE4D2D'],shopee:['Shopee','S','#EE4D2D'],
+  starbucks:['Starbucks','SBX','#00704A'],tiktok:['TikTok','TT','#000000'],tripko:['TRIPKO','T','#FFD400','#0B2A4A'],
+  vybe:['VYBE','V','#FFFFFF','#7C3AED'],wise:['Wise','W','#9FE870','#163300'],
+  aub:['AUB','AUB','#C8102E'],bdo:['BDO','BDO','#0B4EA2'],bpi:['BPI','BPI','#D6322E'],bankcom:['BankCom','BC','#0E1B5C','#F7C948'],
+  chinabank:['Chinabank','CBC','#E31B23'],cimb:['CIMB','CIMB','#EC1C24'],dbp:['DBP','DBP','#1D2BD4'],
+  diskartech:['DiskarTech','DT','#E6F7F8','#00A3AD'],eastwest:['EastWest','EW','#D4E157','#7B1FA2'],farmbank:['Farmbank','FB','#1A1A1A','#F5C518'],
+  hsbc:['HSBC','HSBC','#FFFFFF','#DB0011'],komo:['Komo','K','#5B2246'],landbank:['Landbank','LBP','#3CB521'],
+  maribank:['MariBank','M','#FFFFFF','#F26B1D'],maybank:['Maybank','MAY','#FFC600','#111111'],metrobank:['Metrobank','MB','#5B4BC4'],
+  netbank:['Netbank','NB','#3510E6'],ownbank:['OwnBank','OWN','#111111'],pagibig:['Pag-IBIG','MP2','#FFFFFF','#1E3A8A'],
+  pbb:['PBB','PBB','#FFFFFF','#0F4C81'],pbcom:['PBCOM','PBC','#F80000'],pnb:['PNB','PNB','#1E3A8A'],psbank:['PSBank','PSB','#FFFFFF','#1D4ED8'],
+  rcbc:['RCBC','RCBC','#3E8ED0'],rural:['Rural Bank','RB','#78716C'],salmon:['Salmon','S','#FFFFFF','#F2542D'],
+  seabank:['SeaBank','SEA','#EA580C'],securitybank:['Security Bank','SB','#2B3A55','#9BE15D'],singlife:['Singlife','SL','#F20F14'],
+  tonik:['Tonik','T','#7B61FF'],unionbank:['UnionBank','UB','#FF6A13'],uniondigital:['UnionDigital','UD','#4B2C82'],uno:['UNO Bank','UNO','#111111','#C084FC'],
+  atome:['Atome','A','#F0FF5F','#111111'],zed:['Zed','Z','#FFF000','#111111'],billease:['Billease','BE','#4F8DF7'],
+  bankofmakati:['Bank of Makati','BMI','#FFFFFF','#1E40AF'],cashalo:['Cashalo','C','#FFFFFF','#F5A300'],citysavings:['City Savings','CS','#5B2A86'],
+  ctbc:['CTBC','CTBC','#0E7C66'],homecredit:['Home Credit','HC','#FFFFFF','#E30613'],juanhand:['Juan Hand','JH','#FFFFFF','#6D28D9'],
+  skyro:['Skyro','S','#4DA3FF'],sss:['SSS','SSS','#FFFFFF','#1E40AF'],tala:['Tala','TALA','#23C2C8'],
+};
+const PH_CATALOG={
+  wallet:'autosweep beep gcash gotyme grab hellomoney joyride lazada marcopay mcash maya palawanpay pandapay payoneer paypal peddlr raket shopback shopeepay starbucks tiktok tripko vybe wise'.split(' ').map(k=>[k,'Wallet']),
+  savings:[['aub','Savings'],['bdo','Savings'],['bpi','Savings'],['chinabank','Savings'],['cimb','Savings'],['dbp','Savings'],['diskartech','Savings'],['eastwest','Savings'],['farmbank','Time Deposit'],['gotyme','Savings'],['hsbc','Savings'],['komo','Savings'],['landbank','Savings'],['maribank','Savings'],['maribank','Time Deposit'],['maya','Savings'],['maya','Personal Goals'],['maya','Time Deposit'],['maybank','Savings'],['metrobank','Savings'],['metrobank','Time Deposit'],['netbank','Savings'],['netbank','Time Deposit'],['ownbank','Savings'],['ownbank','Own Wish'],['ownbank','Time Deposit'],['pagibig','MP2 Savings'],['palawanpay','Savings'],['pbb','Savings'],['pbcom','Savings'],['pbcom','Time Deposit'],['pnb','Savings'],['pnb','Time Deposit'],['psbank','Savings'],['rcbc','Savings'],['rcbc','Time Deposit'],['rural','Savings'],['rural','Time Deposit'],['salmon','Savings'],['salmon','Time Deposit'],['seabank','Savings'],['securitybank','Savings'],['securitybank','Time Deposit'],['singlife','Savings'],['tonik','Savings'],['tonik','Time Deposit'],['unionbank','Savings'],['unionbank','Time Deposit'],['uniondigital','Savings'],['uniondigital','Time Deposit'],['uno','Savings'],['uno','Time Deposit']],
+  credit:'atome aub bankcom bdo bpi chinabank eastwest hsbc landbank maribank maya maybank metrobank pnb psbank rcbc salmon securitybank unionbank zed'.split(' ').map(k=>[k,'Credit Card']),
+  loans:'atome aub bdo billease bankofmakati bpi cashalo chinabank cimb citysavings ctbc eastwest gcash gotyme grabloan homecredit juanhand landbank lazada maribank maya metrobank pbcom psbank rcbc rural salmon securitybank shopee skyro sss tala tiktok unionbank'.split(' ').map(k=>[k,'Loan']),
+};
+const CAT_TYPE={wallet:'ewallet',savings:'bank',credit:'credit',loans:'loan'};
+const CAT_LBL={wallet:'Wallet',savings:'Savings',credit:'Credit',loans:'Loans'};
+const PH_ITEMS=Object.entries(PH_CATALOG).flatMap(([cat,list])=>list.map(([k,prod])=>{
+  const[name,abbr,bg,fg='#fff']=PH_BRANDS[k];
+  return{id:k+'_'+prod.toLowerCase().replace(/[^a-z0-9]+/g,''),cat,type:CAT_TYPE[cat],label:`${name} – ${prod}`,name:prod==='Wallet'?name:`${name} ${prod}`,abbr,bg,fg};
+}));
 const BANKS={
-  PHP:[CASH,B('gcash','GCash','G','#0066FF','ewallet'),B('maya','Maya','M','#6B21A8','ewallet'),B('bdo','BDO','BDO','#002B5C','bank'),B('bpi','BPI','BPI','#C0392B','bank'),B('metro','Metrobank','MB','#003F88','bank'),B('union','UnionBank','UB','#1A3C6E','bank'),B('secb','Security Bk','SB','#D97706','bank'),B('land','Landbank','LBP','#15803D','bank'),B('rcbc','RCBC','RCBC','#991B1B','bank'),B('seabk','SeaBank','SEA','#EA580C','bank'),B('tonik','Tonik','T','#E11D48','bank'),B('cimb','CIMB','CIMB','#B91C1C','bank'),B('pnb','PNB','PNB','#1E3A8A','bank'),B('psb','PSBank','PSB','#065F46','bank'),CC],
   USD:[CASH,B('chase','Chase','CHAS','#117ACA','bank'),B('bofa','Bank of America','BofA','#E31837','bank'),B('wells','Wells Fargo','WF','#C8102E','bank'),B('citi','Citibank','CITI','#003B70','bank'),B('c1','Capital One','C1','#C01818','bank'),B('usbank','US Bank','USB','#003087','bank'),B('ally','Ally Bank','ALLY','#7B2D8B','bank'),B('paypal','PayPal','PP','#003087','ewallet'),B('venmo','Venmo','V','#3D95CE','ewallet'),B('zelle','Zelle','Z','#6D1ED4','ewallet'),B('cashapp','Cash App','$','#00C244','ewallet'),CC],
   SGD:[CASH,B('dbs','DBS','DBS','#CC0001','bank'),B('ocbc','OCBC','OCBC','#D2401E','bank'),B('uob','UOB','UOB','#00438C','bank'),B('sc','StanChart','SC','#0F5696','bank'),B('citi_sg','Citibank','CITI','#003B70','bank'),B('grab','GrabPay','G','#00B14F','ewallet'),B('paynow','PayNow','PN','#7C3AED','ewallet'),B('nets','NETS','NETS','#1E40AF','ewallet'),CC],
   EUR:[CASH,B('n26','N26','N26','#1A1A1A','bank'),B('rev','Revolut','REV','#191C1F','bank'),B('deut','Deutsche Bk','DB','#003DA5','bank'),B('bnp','BNP Paribas','BNP','#007A33','bank'),B('ing','ING','ING','#FF6200','bank'),B('sg','Société Gén.','SG','#E9041E','bank'),B('san','Santander','SAN','#EC0000','bank'),B('paypal','PayPal','PP','#003087','ewallet'),B('wise','Wise','W','#9FE870','ewallet','#163300'),CC],
@@ -821,7 +908,8 @@ const CATS=[
 ];
 const TRANSFER={name:'Transfer',icon:'swap',color:'#6E9EF0'};
 const ACOLORS=['#10B981','#0066FF','#2C5FC9','#6B21A8','#EF4444','#F59E0B','#EC4899','#F97316','#06B6D4','#002B5C','#4B5563'];
-const ATYPES={bank:'Bank',ewallet:'E-wallet',cash:'Cash',credit:'Credit'};
+const ATYPES={ewallet:'Wallet',bank:'Savings',cash:'Cash',credit:'Credit',loan:'Loan',invest:'Investment'};
+const isDebt=t=>t==='credit'||t==='loan';
 const PLAN_COLORS=['#5B8DEF','#10B981','#F59E0B','#8B5CF6','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4','#84CC16'];
 const FIXED='Fixed Amount', PCT='Percentage';
 
@@ -875,7 +963,7 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const loc=()=>db.settings.loc||'en-PH';
 const cat=id=>CATS.find(c=>c.id===id)||{name:'Other',icon:'more',color:'#94A3B8'};
 const acct=id=>db.accounts.find(a=>a.id===id);
-const banks=()=>BANKS[db.settings.ccy]||BANKS.PHP;
+const banks=()=>db.settings.ccy==='PHP'?PH_ITEMS:(BANKS[db.settings.ccy]||BANKS.USD).map(b=>({...b,cat:b.type==='bank'?'savings':b.type==='credit'?'credit':'wallet',label:b.name}));
 
 function fm(v){return db.settings.sym+Math.abs(v).toLocaleString(loc(),{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fms(v){return (v>0?'+':v<0?'−':'')+fm(v);}
@@ -891,7 +979,8 @@ const monthLabel=d=>d.toLocaleDateString(loc(),{month:'long',year:'numeric'});
 function logo(a,size=36){
   const ab=String(a.abbr||a.name||'?').slice(0,4);
   const f=ab.length<=1?.46:ab.length===2?.36:ab.length===3?.3:.25;
-  return`<span class="logo" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*.3)}px;background:${esc(a.bg)};color:${esc(a.fg||'#fff')};font-size:${Math.round(size*f)}px">${esc(ab)}</span>`;
+  const light=/^#f/i.test(a.bg||'');
+  return`<span class="logo${light?' lt':''}" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*.3)}px;background:${esc(a.bg)};color:${esc(a.fg||'#fff')};font-size:${Math.round(size*f)}px">${esc(ab)}</span>`;
 }
 
 // ── Computed ──
@@ -902,7 +991,30 @@ function acctBal(id){
     if(t.aid===id){if(t.type==='income')b+=t.amt;else b-=t.amt;}
     if(t.type==='transfer'&&t.tid===id)b+=t.amt;
   }
+  if(a.type==='invest'){const p=investParts(id);b+=p.stocks+p.tradeCash;}
   return b;
+}
+// Investment account = cash (deposits/transfers ± trades paid with cash) + market value of its stocks
+function investParts(id){
+  let stocks=0,tradeCash=0;
+  for(const s of db.stocks||[]){
+    if(s.aid!==id)continue;
+    for(const t of s.trades||[])if(t.cash&&t.local!=null)tradeCash+=t.type==='buy'?-t.local:t.local;
+    if(s.shares>0){const v=toLocal(s.shares*priceOf(s).c,mkt(s).cur);if(v!=null)stocks+=v;}
+  }
+  return{stocks,tradeCash};
+}
+function investCash(id){const a=acct(id);if(!a)return 0;return acctBal(id)-investParts(id).stocks;}
+// Create the Investments account the first time stocks exist, and attach unassigned stocks to it
+function ensureInvestAccount(){
+  const st=(db.stocks||[]).filter(s=>s.shares>0||(s.trades||[]).length);
+  let inv=db.accounts.find(a=>a.type==='invest');
+  if(!st.length)return inv||null;
+  let changed=false;
+  if(!inv){inv={id:uid(),name:'Investments',abbr:'INV',bg:'#7C3AED',fg:'#fff',type:'invest',bal:0};db.accounts.push(inv);changed=true;}
+  for(const s of st)if(!s.aid||!acct(s.aid)){s.aid=inv.id;changed=true;}
+  if(changed)save();
+  return inv;
 }
 const totalBal=()=>db.accounts.reduce((s,a)=>s+acctBal(a.id),0);
 function inPeriod(ds,period,d=new Date()){
@@ -975,11 +1087,25 @@ const buzz=()=>{try{navigator.vibrate&&navigator.vibrate(20);}catch(e){}};
 // ══════════════════════════════════
 // ONBOARDING
 // ══════════════════════════════════
+// Shared bank/wallet picker: category tabs + search + list
+function bankCats(cur,fn){return[...new Set(banks().map(b=>b.cat))].map(c=>`<button class="${cur===c?'on':''}" onclick="${fn}('${c}')">${CAT_LBL[c]}</button>`).join('');}
+function bankRows(cat,q,sel,fn){
+  q=(q||'').trim().toLowerCase();
+  const list=q?banks().filter(b=>b.label.toLowerCase().includes(q)):banks().filter(b=>b.cat===cat);
+  return list.map(b=>`<button class="brow ${sel===b.id?'on':''}" onclick="${fn}('${b.id}')">${logo(b,36)}<span class="bl">${esc(b.label)}</span>${sel===b.id?ic('check'):''}</button>`).join('')
+    ||'<div class="mut" style="padding:14px;font-size:13px">No matches — type your own name below.</div>';
+}
+ui.onb={cat:'wallet',q:''};
 function onbGo(n){
   $$('#onb .onb-step').forEach((s,i)=>s.classList.toggle('on',i===n));
   if(n===1)renderOnbCcy();
-  if(n===2)$('#onb-banks').innerHTML=banks().map(b=>`<button class="bank" onclick="onbBank('${b.id}')">${logo(b,40)}<div>${esc(b.name)}</div></button>`).join('');
+  if(n===2){ui.onb={cat:banks()[0]?.cat||'wallet',q:''};$('#onb-bq').value='';renderOnbBanks();}
 }
+function renderOnbBanks(){
+  $('#onb-bcat').innerHTML=bankCats(ui.onb.cat,'onbCat');
+  $('#onb-banks').innerHTML=bankRows(ui.onb.cat,ui.onb.q,null,'onbBank');
+}
+function onbCat(c){ui.onb.cat=c;ui.onb.q='';$('#onb-bq').value='';renderOnbBanks();}
 function renderOnbCcy(){
   $('#onb-ccys').innerHTML=CCYS.map(c=>`<button class="ccy ${db.settings.ccy===c.code?'on':''}" onclick="setCcy('${c.code}');renderOnbCcy()"><span class="fl">${c.flag}</span><span>${c.code}<small>${c.sym} · ${esc(c.name)}</small></span></button>`).join('');
 }
@@ -1007,7 +1133,8 @@ function renderHome(){
   $('#h-date').textContent=now.toLocaleDateString(loc(),{weekday:'long',month:'long',day:'numeric'});
   $('#h-greet').textContent=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
 
-  const inv=invTotals(),tot=totalBal()+(inv.local??0);
+  ensureInvestAccount();
+  const tot=totalBal();
   $('#h-total').textContent=(tot<0?'−':'')+fm(tot);
   const m=flow('month',now);
   $('#h-pill').innerHTML=m.net===0?'Even this month':`${ic(m.net>0?'out':'in')}${fm(m.net)} ${m.net>0?'saved':'over'} this month`;
@@ -1018,7 +1145,7 @@ function renderHome(){
   $('#h-accts').innerHTML=db.accounts.map(a=>{const b=acctBal(a.id);return`
     <button class="acard" style="--c:${esc(a.bg)}" onclick="openAD('${a.id}')">
       <div class="tp">${logo(a,34)}<span class="ty">${esc(ATYPES[a.type]||a.type||'')}</span></div>
-      <div><div class="nm">${esc(a.name)}</div><div class="bl ${b<0?'neg':''}">${b<0?'−':''}${fm(b)}</div></div>
+      <div><div class="nm">${esc(a.name)}</div><div class="bl ${b<0?'neg':''}">${isDebt(a.type)&&b<0?fm(b)+' <span style="font-size:11px;font-weight:700">owed</span>':(b<0?'−':'')+fm(b)}</div></div>
     </button>`;}).join('')+`<button class="acard add" onclick="openAcct()">${ic('plus')}Add</button>`;
 
   $('#h-periods').innerHTML=[['day','Today'],['month','Month'],['year','Year'],['all','All']].map(([k,l])=>`<button class="${ui.period===k?'on':''}" onclick="ui.period='${k}';renderHome()">${l}</button>`).join('');
@@ -1056,17 +1183,28 @@ function renderSpark(tot){
 }
 
 // ══════════════════════════════════
-// INVESTMENTS  — holdings entered by hand (USD); live prices from Finnhub; FX from open.er-api.com
-// Holdings sync with the account (db.stocks). Prices/FX are a local cache only.
+// INVESTMENTS  — holdings built from recorded buys/sells.
+//   US stocks: USD, live prices from Finnhub.  PH stocks: PHP, price entered by the user (no free licensed PSE feed).
+//   FX: open.er-api.com (USD base) converts every holding into the user's currency.
+// Holdings sync with the account (db.stocks). Quotes/FX are a local cache only.
 // ══════════════════════════════════
 const FINNHUB_KEY='db0bn1hr01qn6m00ap00db0bn1hr01qn6m00ap0g';   // free market-data key (read-only prices; can't access any brokerage)
 const QUOTE_MS=30000;
+const MARKETS={US:{label:'US',flag:'🇺🇸',cur:'USD',loc:'en-US'},PH:{label:'PH',flag:'🇵🇭',cur:'PHP',loc:'en-PH'}};
 let quotes={},fx={},quoteTimer=null,lastQuoteAt=0;
 try{quotes=JSON.parse(lsGet('cove_quotes')||'{}');fx=JSON.parse(lsGet('cove_fx')||'{}');}catch(e){}
 const pricesOn=()=>/^[a-z0-9]{10,}$/i.test(FINNHUB_KEY);
-const usd=(v,dp=2)=>(v<0?'−':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const mkt=s=>MARKETS[s?.market]||MARKETS.US;
+const money=(v,cur='USD',dp=2)=>(v<0?'−':'')+Math.abs(v).toLocaleString(cur==='PHP'?'en-PH':'en-US',{style:'currency',currency:cur,minimumFractionDigits:dp,maximumFractionDigits:dp});
+const usd=(v,dp=2)=>money(v,'USD',dp);
 const pct=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(2)+'%';
 const cleanTicker=t=>String(t||'').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,'');
+// convert an amount in `cur` to the user's currency (null if no rate yet)
+function toLocal(v,cur){
+  const to=db.settings.ccy;if(cur===to)return v;
+  const r=fx.rates;if(!r||!r[to]||!r[cur])return null;
+  return v*r[to]/r[cur];
+}
 
 async function fetchQuote(t){
   if(!pricesOn())return null;
@@ -1078,25 +1216,24 @@ async function fetchQuote(t){
   }catch(e){return null;}
 }
 async function refreshFx(force){
-  const ccy=db.settings.ccy;
-  if(ccy==='USD'){fx={rate:1,ccy,at:Date.now()};return;}
-  if(!force&&fx.ccy===ccy&&Date.now()-(fx.at||0)<6*3600e3)return;
+  if(!force&&fx.rates&&Date.now()-(fx.at||0)<6*3600e3)return;
   try{
     const r=await fetch('https://open.er-api.com/v6/latest/USD');const j=await r.json();
-    if(j&&j.rates&&j.rates[ccy]){fx={rate:j.rates[ccy],ccy,at:Date.now()};lsSet('cove_fx',JSON.stringify(fx));}
+    if(j&&j.rates){fx={rates:j.rates,at:Date.now()};lsSet('cove_fx',JSON.stringify(fx));}
   }catch(e){}
 }
 async function refreshQuotes(){
-  const list=[...new Set((db.stocks||[]).map(s=>s.ticker))];
+  const list=[...new Set((db.stocks||[]).filter(s=>s.shares>0&&mkt(s).cur==='USD').map(s=>s.ticker))];
   await refreshFx();
-  if(!list.length||!pricesOn()||!navigator.onLine){if(ui.scr==='home')renderInvest();return;}
+  if(!list.length||!pricesOn()||!navigator.onLine){if(ui.scr==='home'&&$('#app').style.display==='block')renderHome();return;}
   const before={};list.forEach(t=>before[t]=quotes[t]?.c);
   for(const t of list){const q=await fetchQuote(t);if(q&&!q.missing)quotes[t]=q;}
   lastQuoteAt=Date.now();lsSet('cove_quotes',JSON.stringify(quotes));
   if(ui.scr==='home'&&$('#app').style.display==='block'){
     renderHome();
-    list.forEach(t=>{const b=before[t],n=quotes[t]?.c;if(b&&n&&b!==n){const el=$(`.stk[data-t="${t}"]`);el?.classList.add(n>b?'flash-up':'flash-down');}});
+    list.forEach(t=>{const b=before[t],n=quotes[t]?.c;if(b&&n&&b!==n){const el=$(`.stk[data-t="US:${t}"]`);el?.classList.add(n>b?'flash-up':'flash-down');}});
   }
+  if($('#sh-sd').classList.contains('open'))renderStockDetail();
 }
 function startQuotes(){
   clearInterval(quoteTimer);
@@ -1105,97 +1242,241 @@ function startQuotes(){
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&user&&Date.now()-lastQuoteAt>QUOTE_MS)refreshQuotes();});
 
+// Current price for a holding: live quote (US) or last price the user entered (PH / no feed)
+function priceOf(s){
+  if(mkt(s).cur==='USD'&&quotes[s.ticker])return{c:quotes[s.ticker].c,pc:quotes[s.ticker].pc,live:true};
+  const c=s.px?.c||s.cost||0;return{c,pc:c,live:false,at:s.px?.at};
+}
 function invTotals(){
-  const rows=(db.stocks||[]).map(s=>{
-    const q=quotes[s.ticker],price=q?.c||s.cost||0,prev=q?.pc||price;
-    const value=s.shares*price,cost=s.cost?s.shares*s.cost:null;
-    return{...s,price,prev,value,day:s.shares*(price-prev),dayPct:prev?(price-prev)/prev*100:0,gain:cost!=null?value-cost:null,gainPct:cost?(value-cost)/cost*100:null,live:!!q};
+  const rows=(db.stocks||[]).filter(s=>s.shares>0).map(s=>{
+    const m=mkt(s),p=priceOf(s),value=s.shares*p.c,cost=s.cost?s.shares*s.cost:null;
+    return{...s,m,cur:m.cur,price:p.c,prev:p.pc,live:p.live,value,valueL:toLocal(value,m.cur),
+      day:s.shares*(p.c-p.pc),dayPct:p.pc?(p.c-p.pc)/p.pc*100:0,gain:cost!=null?value-cost:null,gainPct:cost?(value-cost)/cost*100:null,cost0:cost};
   });
-  const usdV=rows.reduce((a,r)=>a+r.value,0),day=rows.reduce((a,r)=>a+r.day,0);
-  const costed=rows.filter(r=>r.gain!=null),gain=costed.reduce((a,r)=>a+r.gain,0),costSum=costed.reduce((a,r)=>a+r.shares*r.cost,0);
-  const rate=db.settings.ccy==='USD'?1:(fx.ccy===db.settings.ccy?fx.rate:null);
-  return{rows,usd:usdV,day,dayPct:usdV-day?day/(usdV-day)*100:0,gain,gainPct:costSum?gain/costSum*100:null,rate,local:rows.length&&rate?usdV*rate:(rows.length?null:0)};
+  const L=(v,cur)=>toLocal(v,cur)??0;
+  const local=rows.reduce((a,r)=>a+L(r.value,r.cur),0);
+  const day=rows.reduce((a,r)=>a+L(r.day,r.cur),0);
+  const costed=rows.filter(r=>r.gain!=null),gain=costed.reduce((a,r)=>a+L(r.gain,r.cur),0),costSum=costed.reduce((a,r)=>a+L(r.cost0,r.cur),0);
+  const realized=(db.stocks||[]).reduce((a,s)=>a+L(s.realized||0,mkt(s).cur),0);
+  const missingFx=rows.some(r=>r.valueL==null);
+  const usOnly=rows.filter(r=>r.cur==='USD').reduce((a,r)=>a+r.value,0);
+  return{rows,local:rows.length&&!missingFx?local:(rows.length?null:0),day,dayPct:local-day?day/(local-day)*100:0,gain,gainPct:costSum?gain/costSum*100:null,realized,usOnly,missingFx};
 }
 function renderInvest(){
   const el=$('#h-inv');if(!el)return;
   const v=invTotals();
-  if(!v.rows.length){el.innerHTML=`<button class="dashed" onclick="openStock()">${ic('trend')}Add your stocks to track them live</button>`;return;}
-  const cls=n=>n>0?'pos':n<0?'neg':'flat';
-  const loc$=db.settings.ccy==='USD'?'':(v.rate?fm(v.usd*v.rate):'');
-  const status=!pricesOn()?'<span class="live"><i></i>Live prices not set up</span>'
-    :`<span class="live"><i class="${navigator.onLine?'on':''}"></i>${navigator.onLine?'Live':'Offline'}${lastQuoteAt?' · '+new Date(lastQuoteAt).toLocaleTimeString(loc(),{hour:'numeric',minute:'2-digit'}):''}</span>`;
+  if(!v.rows.length){el.innerHTML=`<button class="dashed" onclick="openTrade('buy')">${ic('trend')}Add your US or PH stocks</button>`;return;}
+  const cls=n=>n>0?'pos':n<0?'neg':'flat',sgn=n=>n>=0?'+':'−';
+  const hasUS=v.rows.some(r=>r.cur==='USD');
+  const status=!hasUS?'':!pricesOn()?'<span class="live"><i></i>Live prices off</span>'
+    :`<span class="live"><i class="${navigator.onLine?'on':''}"></i>${navigator.onLine?'US live':'Offline'}${lastQuoteAt?' · '+new Date(lastQuoteAt).toLocaleTimeString(loc(),{hour:'numeric',minute:'2-digit'}):''}</span>`;
+  const usdRate=toLocal(1,'USD');
   el.innerHTML=`<div class="list">
     <div class="inv-hd">
       <div class="k"><span>Portfolio value</span>${status}</div>
-      <div class="v">${loc$||usd(v.usd)}</div>
-      ${loc$?`<div class="u">${usd(v.usd)} · $1 = ${fm(v.rate)}</div>`:''}
-      <span class="chg ${cls(v.day)}">${ic(v.day>=0?'out':'in')}${usd(Math.abs(v.day))} (${pct(v.dayPct)}) today</span>${v.gainPct!=null?`<span class="chg ${cls(v.gain)}">${v.gain>=0?'+':'−'}${usd(Math.abs(v.gain))} (${pct(v.gainPct)}) total</span>`:''}
+      <div class="v">${v.local==null?'—':fm(v.local)}</div>
+      ${hasUS&&db.settings.ccy!=='USD'?`<div class="u">US ${usd(v.usOnly)}${usdRate?' · $1 = '+fm(usdRate):' · waiting for exchange rate'}</div>`:''}
+      <span class="chg ${cls(v.day)}">${ic(v.day>=0?'out':'in')}${fm(Math.abs(v.day))} (${pct(v.dayPct)}) today</span>${v.gainPct!=null?`<span class="chg ${cls(v.gain)}">${sgn(v.gain)}${fm(Math.abs(v.gain))} (${pct(v.gainPct)}) total</span>`:''}${v.realized?`<span class="chg ${cls(v.realized)}">${sgn(v.realized)}${fm(Math.abs(v.realized))} realized</span>`:''}
     </div>
-    ${v.rows.sort((a,b)=>b.value-a.value).map(r=>`<button class="stk" data-t="${esc(r.ticker)}" onclick="openStock('${r.id}')">
+    ${v.rows.sort((a,b)=>(b.valueL??0)-(a.valueL??0)).map(r=>`<button class="stk" data-t="${r.m.label}:${esc(r.ticker)}" onclick="openStockDetail('${r.id}')">
       <span class="tick">${esc(r.ticker.slice(0,5))}</span>
-      <span class="m"><div class="t">${esc(r.ticker)}</div><div class="s">${+r.shares.toFixed(6)} sh · ${usd(r.price)}${r.live?'':' (no live price)'}</div></span>
-      <span class="r"><div class="a">${usd(r.value)}</div><div class="d ${cls(r.dayPct)}">${pct(r.dayPct)}</div></span>
+      <span class="m"><div class="t">${esc(r.ticker)} <span style="font-size:12px">${r.m.flag}</span></div><div class="s">${+r.shares.toFixed(6)} sh · ${money(r.price,r.cur)}${r.live?'':r.cur==='USD'?' (no live price)':' (manual)'}</div></span>
+      <span class="r"><div class="a">${money(r.value,r.cur)}</div><div class="d ${r.live?cls(r.dayPct):'flat'}" style="${r.live?'':'color:var(--faint)'}">${r.live?pct(r.dayPct):r.cur!==db.settings.ccy&&r.valueL!=null?fm(r.valueL):'manual'}</div></span>
     </button>`).join('')}
   </div>`;
 }
 
-// ── Add / edit stock ──
-let stockLookupT=null,stockQ=null;
-function openStock(id){
-  if(!user&&sb){toast('Sign in first');return;}
-  const s=id?(db.stocks||[]).find(x=>x.id===id):null;
-  ui.st={id:s?.id||null};
-  $('#st-title').textContent=s?'Edit '+s.ticker:'Add stock';
-  $('#st-ticker').value=s?s.ticker:'';$('#st-ticker').disabled=!!s;
-  $('#st-shares').value=s?s.shares:'';$('#st-cost').value=s&&s.cost?s.cost:'';
-  $('#st-del').hidden=!s;$('#st-save').textContent=s?'Save changes':'Add stock';
-  stockQ=s&&quotes[s.ticker]?quotes[s.ticker]:null;
-  stockPreview();openSheet('sh-stock');
-  if(!s&&matchMedia('(pointer:fine)').matches)setTimeout(()=>$('#st-ticker').focus(),320);
-}
-function stockLookup(){
-  const t=cleanTicker($('#st-ticker').value);stockQ=null;stockPreview();
-  clearTimeout(stockLookupT);if(!t||!pricesOn())return;
-  stockLookupT=setTimeout(async()=>{
-    $('#st-prev').innerHTML='Checking '+esc(t)+'…';
-    const q=await fetchQuote(t);
-    if(cleanTicker($('#st-ticker').value)!==t)return;
-    stockQ=q;if(q&&!q.missing){quotes[t]=q;lsSet('cove_quotes',JSON.stringify(quotes));}
-    stockPreview();
-  },450);
-}
-function stockPreview(){
-  const t=cleanTicker($('#st-ticker').value),sh=num($('#st-shares').value),el=$('#st-prev');
-  if(!t){el.textContent=pricesOn()?'Type a US ticker to see its live price.':'Live prices aren\'t set up yet. You can still add stocks.';return;}
-  if(stockQ&&stockQ.missing){el.innerHTML=`<span class="neg">Couldn't find <b class="neg">${esc(t)}</b>. Use the US ticker, like AAPL.</span>`;return;}
-  const q=stockQ||quotes[t];
-  if(!q){el.textContent=pricesOn()?'Looking up price…':'No live price — value will use your average cost.';return;}
-  const d=q.pc?(q.c-q.pc)/q.pc*100:0,val=sh>0?` · ${+sh} sh = <b>${usd(sh*q.c)}</b>${fx.rate&&db.settings.ccy!=='USD'?' ('+fm(sh*q.c*fx.rate)+')':''}`:'';
-  el.innerHTML=`<b>${esc(t)}</b> ${usd(q.c)} <span class="${d>0?'pos':d<0?'neg':''}">${pct(d)}</span>${val}`;
-}
-function saveStock(){
-  const t=cleanTicker($('#st-ticker').value),shares=num($('#st-shares').value),cost=num($('#st-cost').value);
-  if(!/^[A-Z][A-Z0-9.\-]{0,9}$/.test(t))return toast('Enter a ticker like AAPL');
-  if(stockQ&&stockQ.missing)return toast(`Couldn't find ${t}`);
-  if(shares<=0)return toast('Enter how many shares you own');
-  db.stocks=db.stocks||[];
-  const rec={ticker:t,shares:Math.round(shares*1e6)/1e6,cost:cost>0?Math.round(cost*1e4)/1e4:null};
-  if(ui.st.id)Object.assign(db.stocks.find(x=>x.id===ui.st.id),rec);
-  else{
-    const ex=db.stocks.find(x=>x.ticker===t);
-    if(ex){ // merge into existing holding with weighted average cost
-      const tot=ex.shares+rec.shares;
-      ex.cost=ex.cost&&rec.cost?Math.round((ex.cost*ex.shares+rec.cost*rec.shares)/tot*1e4)/1e4:(ex.cost||rec.cost);
-      ex.shares=Math.round(tot*1e6)/1e6;
-    }else db.stocks.push({id:uid(),...rec});
+// ── Trades: positions are rebuilt from each stock's trade history ──
+// stock = {id, ticker, market:'US'|'PH', shares, cost, realized, px:{c,at}, trades:[{id,type:'buy'|'sell',shares,price,date,ts,opening?}]}
+function ensureTrades(s){
+  if(!s.market)s.market='US';
+  if(!Array.isArray(s.trades)){ // stocks added before trades existed → opening position
+    s.trades=s.shares>0?[{id:uid(),type:'buy',shares:s.shares,price:s.cost||quotes[s.ticker]?.c||0,date:null,ts:0,opening:true}]:[];
   }
-  save();closeSheets();renderHome();toast(ui.st.id?'Saved':`${t} added`);
-  if(!quotes[t])refreshQuotes();
+  return s.trades;
+}
+function replay(s){
+  let sh=0,cost=0,real=0;
+  const ord=[...ensureTrades(s)].sort((a,b)=>(a.opening?-1:0)-(b.opening?-1:0)||String(a.date||'').localeCompare(String(b.date||''))||(a.ts||0)-(b.ts||0));
+  for(const t of ord){
+    if(t.type==='buy'){cost=sh+t.shares>0?(cost*sh+t.price*t.shares)/(sh+t.shares):0;sh+=t.shares;}
+    else{const q=Math.min(t.shares,sh);real+=(t.price-cost)*q;sh-=q;if(sh<1e-9){sh=0;cost=0;}}
+  }
+  s.shares=Math.round(sh*1e6)/1e6;s.cost=s.shares>0&&cost>0?Math.round(cost*1e4)/1e4:null;s.realized=Math.round(real*100)/100;
+  return s;
+}
+
+// ── Stock detail ──
+function openStockDetail(id){ui.sdId=id;renderStockDetail();openSheet('sh-sd');}
+function renderStockDetail(){
+  const s=(db.stocks||[]).find(x=>x.id===ui.sdId);if(!s){closeSheets();return;}
+  ensureTrades(s);
+  const m=mkt(s),cur=m.cur,p=priceOf(s),price=p.c,dp=p.pc?(price-p.pc)/p.pc*100:0;
+  const value=s.shares*price,gain=s.cost?value-s.shares*s.cost:null,gp=s.cost?gain/(s.shares*s.cost)*100:null;
+  const valueL=cur!==db.settings.ccy?toLocal(value,cur):null;
+  const cls=n=>n>0?'pos':n<0?'neg':'';
+  const hist=[...s.trades].sort((a,b)=>(b.opening?-1:0)-(a.opening?-1:0)||String(b.date||'').localeCompare(String(a.date||''))||(b.ts||0)-(a.ts||0));
+  $('#sd-body').innerHTML=`
+    <div class="sdhd"><span class="tick" style="width:46px;height:46px">${esc(s.ticker.slice(0,5))}</span>
+      <div class="m"><div class="t">${esc(s.ticker)} <span style="font-size:15px">${m.flag}</span></div><div class="s">${m.label} market · ${p.live?'Live price':cur==='USD'?'No live price':'Price you entered'+(p.at?' · '+dayLabel(isoDay(new Date(p.at))):'')}</div></div>
+      <button class="iconbtn" style="box-shadow:none" onclick="closeSheets()" aria-label="Close">${ic('x')}</button></div>
+    <div class="sdpx">${money(price,cur)}</div>
+    ${p.live?`<span class="chg ${dp>0?'pos':dp<0?'neg':'flat'}" style="margin-top:6px">${money(Math.abs(price-p.pc),cur)} (${pct(dp)}) today</span>`
+      :`<button class="btn ghost sm" style="margin-top:8px" onclick="updatePrice()">${ic('edit')}Update price</button>`}
+    <div class="sdgrid">
+      <div class="stat"><div class="k">Shares</div><div class="v">${+s.shares.toFixed(6)}</div></div>
+      <div class="stat"><div class="k">Avg cost</div><div class="v">${s.cost?money(s.cost,cur):'—'}</div></div>
+      <div class="stat"><div class="k">Value</div><div class="v">${money(value,cur)}${valueL!=null?`<div class="mut" style="font-size:11.5px;font-weight:600">${fm(valueL)}</div>`:''}</div></div>
+      <div class="stat"><div class="k">Unrealized</div><div class="v ${cls(gain)}">${gain==null?'—':(gain>=0?'+':'−')+money(Math.abs(gain),cur)+(gp!=null?` <span style="font-size:11.5px">${pct(gp)}</span>`:'')}</div></div>
+      ${s.realized?`<div class="stat" style="grid-column:span 2"><div class="k">Realized from sales</div><div class="v ${cls(s.realized)}">${s.realized>=0?'+':'−'}${money(Math.abs(s.realized),cur)}</div></div>`:''}
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="openTrade('sell','${s.id}')" ${s.shares>0?'':'disabled'}>Sell</button>
+      <button class="btn" onclick="openTrade('buy','${s.id}')">Buy</button>
+    </div>
+    <div class="sec" style="margin-top:22px"><h2>History</h2><span class="mut" style="font-size:12.5px;font-weight:600">${hist.length} trade${hist.length===1?'':'s'}</span></div>
+    <div class="list" style="box-shadow:none">${hist.map(t=>`<div class="trd">
+      <span class="m"><div class="t"><span class="pill2 ${t.opening?'open':t.type}">${t.opening?'START':t.type.toUpperCase()}</span>${+t.shares.toFixed(6)} sh @ ${money(t.price,cur)}</div>
+        <div class="s">${t.opening?'Starting position':t.date?dayLabel(t.date):''}</div></span>
+      <span class="a ${t.type==='sell'?'pos':''}">${t.type==='sell'?'+':'−'}${money(t.shares*t.price,cur)}</span>
+      <button class="x" onclick="delTrade('${t.id}')" aria-label="Delete trade">${ic('x')}</button>
+    </div>`).join('')||'<div class="empty" style="padding:18px">No trades yet.</div>'}</div>
+    <button class="link" style="display:block;margin:18px auto 4px;color:var(--neg)" onclick="delStock()">Remove ${esc(s.ticker)} from cove</button>`;
+}
+async function updatePrice(){
+  const s=(db.stocks||[]).find(x=>x.id===ui.sdId);if(!s)return;
+  const cur=mkt(s).cur,v=prompt(`Latest price for ${s.ticker} (${cur})`,priceOf(s).c||'');
+  if(v==null)return;const c=Math.round(num(v)*1e4)/1e4;
+  if(c<=0)return toast('Enter a valid price');
+  s.px={c,at:Date.now()};save();renderStockDetail();renderHome();toast(`${s.ticker} price updated`);
+}
+async function delTrade(tid){
+  const s=(db.stocks||[]).find(x=>x.id===ui.sdId);if(!s)return;
+  const t=s.trades.find(x=>x.id===tid);if(!t)return;
+  if(!await ask('Delete this trade?',`${t.type==='buy'?'Buy':'Sell'} of ${+t.shares.toFixed(6)} ${s.ticker}. Your shares and average cost will be recalculated.`))return;
+  s.trades=s.trades.filter(x=>x.id!==tid);replay(s);save();renderStockDetail();renderHome();toast('Trade deleted');
 }
 async function delStock(){
-  const s=(db.stocks||[]).find(x=>x.id===ui.st.id);if(!s)return;
-  if(!await ask(`Remove ${s.ticker}?`,'This only removes it from cove. Nothing changes in your brokerage.','Remove'))return;
+  const s=(db.stocks||[]).find(x=>x.id===ui.sdId);if(!s)return;
+  if(!await ask(`Remove ${s.ticker}?`,'Removes it and its trade history from cove. Nothing changes in your brokerage.','Remove'))return;
   db.stocks=db.stocks.filter(x=>x.id!==s.id);save();closeSheets();renderHome();toast('Removed');
+}
+
+// ── Buy / sell sheet ──
+let tradeLookupT=null,tradeQ=null;
+function openTrade(type,id){
+  if(!user&&sb){toast('Sign in first');return;}
+  const s=id?(db.stocks||[]).find(x=>x.id===id):null;
+  if(s)ensureTrades(s);
+  const invs=db.accounts.filter(a=>a.type==='invest');
+  ui.tr={type,id:s?.id||null,back:!!s,market:s?.market||ui.lastMarket||(db.settings.ccy==='PHP'?'PH':'US'),
+    aid:(s&&acct(s.aid)?s.aid:null)||(ui.tradeAid&&acct(ui.tradeAid)?ui.tradeAid:null)||invs[0]?.id||null,cashTouched:false};
+  ui.tradeAid=null;
+  $('#tr-ticker-fld').hidden=!!s;$('#tr-market-fld').hidden=!!s;
+  $('#tr-ticker').value=s?s.ticker:'';
+  $('#tr-shares').value='';
+  tradeQ=s&&mkt(s).cur==='USD'?quotes[s.ticker]||null:null;
+  $('#tr-price').value=s?(priceOf(s).c||''):'';
+  $('#tr-date').value=isoDay(new Date());
+  renderTradeForm();openSheet('sh-trade');
+  if(matchMedia('(pointer:fine)').matches)setTimeout(()=>(s?$('#tr-shares'):$('#tr-ticker')).focus(),320);
+}
+function setTradeType(t){ui.tr.type=t;renderTradeForm();}
+function setTradeMarket(m){ui.tr.market=m;ui.lastMarket=m;tradeQ=null;$('#tr-price').value='';renderTradeForm();tradeLookup();}
+function tradeStock(){
+  const t=cleanTicker($('#tr-ticker').value);
+  return ui.tr.id?(db.stocks||[]).find(x=>x.id===ui.tr.id):(db.stocks||[]).find(x=>x.ticker===t&&(x.market||'US')===ui.tr.market);
+}
+function renderTradeForm(){
+  const x=ui.tr,s=tradeStock(),m=MARKETS[x.market];
+  $('#tr-title').textContent=(x.type==='buy'?'Buy ':'Sell ')+(s?s.ticker:'stock');
+  $('#tr-types').innerHTML=[['buy','Buy'],['sell','Sell']].map(([k,l])=>`<button class="${x.type===k?'on':''}" onclick="setTradeType('${k}')">${l}</button>`).join('');
+  $('#tr-markets').innerHTML=Object.entries(MARKETS).map(([k,v])=>`<button class="${x.market===k?'on':''}" onclick="setTradeMarket('${k}')">${v.flag} ${k==='US'?'US stocks':'PH stocks'}</button>`).join('');
+  $('#tr-cur').textContent=m.cur==='USD'?'$':'₱';
+  $('#tr-price-lbl').textContent=`Price per share (${m.cur})`;
+  $('#tr-ticker').placeholder=x.market==='PH'?'e.g. JFC, SM, BDO, ALI':'e.g. AAPL, NVDA, VOO';
+  $('#tr-shares-lbl').textContent=x.type==='sell'&&s?`Shares (you own ${+s.shares.toFixed(6)})`:'Shares';
+  $('#tr-quick').innerHTML=x.type==='sell'&&s&&s.shares>0?[['All',1],['Half',.5],['Quarter',.25]].map(([l,f])=>`<button class="chip txt" onclick="$('#tr-shares').value=${+(s.shares*f).toFixed(6)};tradePreview()">${l}</button>`).join(''):'';
+  $('#tr-save').textContent=x.type==='buy'?'Record buy':'Record sell';
+  const invs=db.accounts.filter(a=>a.type==='invest');
+  $('#tr-acct-fld').hidden=invs.length<2||!!(s&&s.trades?.length&&x.id);
+  $('#tr-accts').innerHTML=invs.map(a=>`<button class="chip ${x.aid===a.id?'on':''}" onclick="ui.tr.aid='${a.id}';ui.tr.cashTouched=false;renderTradeForm()">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div><small>Cash ${fm(investCash(a.id))}</small></span></button>`).join('');
+  tradePreview();
+}
+function tradeLookup(){
+  const t=cleanTicker($('#tr-ticker').value);tradeQ=null;renderTradeForm();
+  clearTimeout(tradeLookupT);if(!t||!pricesOn()||ui.tr.market!=='US')return;
+  tradeLookupT=setTimeout(async()=>{
+    $('#tr-prev').innerHTML='Checking '+esc(t)+'…';
+    const q=await fetchQuote(t);
+    if(cleanTicker($('#tr-ticker').value)!==t||ui.tr.market!=='US')return;
+    tradeQ=q;
+    if(q&&!q.missing){quotes[t]=q;lsSet('cove_quotes',JSON.stringify(quotes));if(!num($('#tr-price').value))$('#tr-price').value=q.c;}
+    renderTradeForm();
+  },450);
+}
+function tradePreview(){
+  const x=ui.tr,cur=MARKETS[x.market].cur,t=cleanTicker($('#tr-ticker').value),s=tradeStock(),sh=num($('#tr-shares').value),px=num($('#tr-price').value);
+  const pv=$('#tr-prev');
+  if(x.market==='PH'){
+    pv.innerHTML=s?`<b>${esc(s.ticker)}</b> last price you entered: ${money(priceOf(s).c,'PHP')}`:'PH stock prices aren\'t available live for free. Enter the price from your broker app — you can update it anytime.';
+  }else{
+    const q=tradeQ||quotes[t];
+    if(!t)pv.textContent=pricesOn()?'Type a US ticker to see its live price.':'Live prices aren\'t set up yet.';
+    else if(q&&q.missing)pv.innerHTML=`<span class="neg">Couldn't find <b class="neg">${esc(t)}</b>. Use the US ticker, like AAPL.</span>`;
+    else if(q){const d=q.pc?(q.c-q.pc)/q.pc*100:0;pv.innerHTML=`<b>${esc(t)}</b> live ${usd(q.c)} <span class="${d>0?'pos':d<0?'neg':''}">${pct(d)}</span> <button class="link" style="margin-left:6px" onclick="$('#tr-price').value=${q.c};tradePreview()">Use price</button>`;}
+    else pv.textContent=pricesOn()?'Looking up price…':'Enter the price you paid.';
+  }
+  const tot=$('#tr-total');
+  if(!(sh>0&&px>0)){tot.textContent=x.type==='buy'?'Enter shares and price to see the total.':'Enter shares and price to see what you get back.';return;}
+  const amt=sh*px,amtL=cur!==db.settings.ccy?toLocal(amt,cur):null;let extra='';
+  if(x.type==='buy'&&s&&s.shares>0){const nc=(s.cost*s.shares+amt)/(s.shares+sh);extra=` · new avg cost <b>${money(nc,cur)}</b>`;}
+  if(x.type==='sell'&&s){
+    if(sh>s.shares+1e-9){tot.innerHTML=`<span class="neg">You only own ${+s.shares.toFixed(6)} ${esc(s.ticker)}.</span>`;return;}
+    if(s.cost){const g=(px-s.cost)*sh;extra=` · <span class="${g>=0?'pos':'neg'}">${g>=0?'+':'−'}${money(Math.abs(g),cur)} ${g>=0?'profit':'loss'}</span>`;}
+  }
+  tot.innerHTML=`${x.type==='buy'?'Total cost':'You receive'} <b>${money(amt,cur)}</b>${amtL!=null?' ('+fm(amtL)+')':''}${extra}`;
+  tradeCashUI(cur===db.settings.ccy?amt:amtL);
+}
+// Does this trade move cash in/out of the investment account?
+function tradeCashUI(amtL){
+  const x=ui.tr,a=acct(x.aid),name=a?a.name:'Investments',cash=a?investCash(a.id):0;
+  const cb=$('#tr-cash'),hint=$('#tr-cash-hint');
+  if(!x.cashTouched)cb.checked=x.type==='sell'?true:(amtL!=null?cash>=amtL-0.005&&cash>0:cash>0);
+  $('#tr-cash-lbl').textContent=x.type==='buy'?`Pay with cash in ${name}`:`Add the proceeds to ${name} cash`;
+  hint.classList.remove('warn');
+  if(x.type==='sell'){hint.textContent=cb.checked?'The money stays in your investment account until you withdraw it.':'Proceeds won\'t be added to any account.';return;}
+  if(!cb.checked){hint.textContent='Won\'t touch cash — use this for shares you already owned or paid for outside cove.';return;}
+  if(amtL!=null&&amtL>cash+0.005){hint.classList.add('warn');hint.textContent=`Only ${fm(cash)} cash in ${name}. Record a deposit first (e.g. from your salary account), or untick this if you already owned these shares.`;}
+  else hint.textContent=`${fm(cash)} cash available in ${name}.`;
+}
+function createInvestAccount(){const a={id:uid(),name:'Investments',abbr:'INV',bg:'#7C3AED',fg:'#fff',type:'invest',bal:0};db.accounts.push(a);return a;}
+function saveTrade(){
+  const x=ui.tr,t=cleanTicker($('#tr-ticker').value),sh=Math.round(num($('#tr-shares').value)*1e6)/1e6,px=Math.round(num($('#tr-price').value)*1e4)/1e4;
+  if(!/^[A-Z0-9][A-Z0-9.\-]{0,9}$/.test(t))return toast(x.market==='PH'?'Enter a ticker like JFC':'Enter a ticker like AAPL');
+  if(x.market==='US'&&tradeQ&&tradeQ.missing)return toast(`Couldn't find ${t}`);
+  if(sh<=0)return toast('Enter the number of shares');
+  if(px<=0)return toast('Enter the price per share');
+  db.stocks=db.stocks||[];
+  let s=tradeStock();
+  if(x.type==='sell'){
+    if(!s||s.shares<=0)return toast(`You don't own any ${t}`);
+    if(sh>s.shares+1e-9)return toast(`You only own ${+s.shares.toFixed(6)} ${t}`);
+  }
+  let aid=s&&acct(s.aid)?s.aid:(x.aid&&acct(x.aid)?x.aid:null);
+  if(!aid)aid=(db.accounts.find(a=>a.type==='invest')||createInvestAccount()).id;
+  if(!s){s={id:uid(),ticker:t,market:x.market,aid,shares:0,cost:null,realized:0,trades:[]};db.stocks.push(s);}
+  s.aid=aid;
+  const cur=MARKETS[s.market||'US'].cur,local=cur===db.settings.ccy?sh*px:toLocal(sh*px,cur);
+  ensureTrades(s).push({id:uid(),type:x.type,shares:sh,price:px,date:$('#tr-date').value||isoDay(new Date()),ts:Date.now(),
+    cash:$('#tr-cash').checked&&local!=null,local:local!=null?Math.round(local*100)/100:null});
+  if(mkt(s).cur!=='USD'||!quotes[s.ticker])s.px={c:px,at:Date.now()}; // latest known price for manual markets
+  replay(s);save();buzz();
+  closeSheets();
+  if(x.back||x.type==='sell'){ui.sdId=s.id;renderStockDetail();openSheet('sh-sd');}
+  renderHome();
+  toast(`${x.type==='buy'?'Bought':'Sold'} ${+sh} ${t}`);
+  if(mkt(s).cur==='USD'&&!quotes[t])refreshQuotes();
 }
 
 function emptyHTML(icon,title,sub,btn=''){
@@ -1246,6 +1527,7 @@ function openTxn(id,preset={}){
   $('#sh-ad')._return=$('#sh-ad').classList.contains('open'); // reopen account detail after save/delete
   ui.tx=t?{id:t.id,type:t.type,cat:t.type==='transfer'?null:t.cid,aid:t.aid,tid:t.tid||null}
          :{id:null,type:preset.type||'expense',cat:preset.cat||null,aid:preset.aid||db.accounts[0].id,tid:null};
+  if(!t&&preset.tid)ui.tx.tid=preset.tid;
   if(ui.tx.type==='transfer'&&!ui.tx.tid)ui.tx.tid=db.accounts.find(a=>a.id!==ui.tx.aid)?.id||null;
   $('#tx-title').textContent=t?'Edit transaction':'New transaction';
   $('#tx-amt').value=t?t.amt:(preset.amt?Math.round(preset.amt*100)/100:'');
@@ -1308,23 +1590,25 @@ async function delTxn(){
 // ══════════════════════════════════
 function openAcct(id){
   const a=id?acct(id):null;
-  ui.ac={id:a?.id||null,bank:null,color:a?.bg||ACOLORS[2],fg:a?.fg||'#fff',type:a?.type||'bank',abbr:a?.abbr||null};
+  ui.ac={id:a?.id||null,bank:null,color:a?.bg||ACOLORS[2],fg:a?.fg||'#fff',type:a?.type||'bank',abbr:a?.abbr||null,cat:banks()[0]?.cat||'wallet',q:''};
+  $('#ac-bq').value='';
   $('#ac-title').textContent=a?'Edit account':'New account';
   $('#ac-banks-fld').hidden=!!a;
   $('#ac-name').value=a?a.name:'';
-  $('#ac-bal').value=a&&a.bal?a.bal:'';
-  $('#ac-bal-lbl').textContent=a?'Starting balance':'Current balance';
+  $('#ac-bal').value=a&&a.bal?(isDebt(a.type)?Math.abs(a.bal):a.bal):'';
   $('#ac-del').hidden=!a;
   $('#ac-save').textContent=a?'Save changes':'Add account';
   syncSym();renderAcctForm();openSheet('sh-acct');
 }
 function renderAcctForm(){
   const s=ui.ac;
-  if(!s.id)$('#ac-banks').innerHTML=banks().map(b=>`<button class="bank ${s.bank===b.id?'on':''}" onclick="pickBank('${b.id}')">${logo(b,38)}<div>${esc(b.name)}</div></button>`).join('');
+  if(!s.id){$('#ac-bcat').innerHTML=bankCats(s.cat,'acCat');$('#ac-banks').innerHTML=bankRows(s.cat,s.q,s.bank,'pickBank');}
+  $('#ac-bal-lbl').textContent=isDebt(s.type)?(s.id?'Starting amount owed':'Amount owed now'):s.type==='invest'?(s.id?'Starting cash':'Cash in this account'):(s.id?'Starting balance':'Current balance');
   $('#ac-types').innerHTML=Object.entries(ATYPES).map(([k,l])=>`<button class="chip txt ${s.type===k?'on':''}" onclick="ui.ac.type='${k}';renderAcctForm()">${l}</button>`).join('');
   const colors=ACOLORS.includes(s.color)?ACOLORS:[s.color,...ACOLORS];
   $('#ac-colors').innerHTML=colors.map(c=>`<button class="sw ${s.color===c?'on':''}" style="--c:${esc(c)}" onclick="ui.ac.color='${esc(c)}';ui.ac.fg='#fff';renderAcctForm()" aria-label="Color ${esc(c)}">${s.color===c?ic('check'):''}</button>`).join('');
 }
+function acCat(c){ui.ac.cat=c;ui.ac.q='';$('#ac-bq').value='';renderAcctForm();}
 function pickBank(id){
   const b=banks().find(x=>x.id===id);if(!b)return;
   Object.assign(ui.ac,{bank:id,color:b.bg,fg:b.fg,type:b.type,abbr:b.abbr});
@@ -1333,7 +1617,8 @@ function pickBank(id){
 function saveAcct(){
   const s=ui.ac,name=$('#ac-name').value.trim();
   if(!name)return toast('Enter an account name');
-  const bal=Math.round(num($('#ac-bal').value)*100)/100;
+  let bal=Math.round(num($('#ac-bal').value)*100)/100;
+  if(isDebt(s.type))bal=-Math.abs(bal); // money owed is stored as a negative balance
   const b=s.bank?banks().find(x=>x.id===s.bank):null;
   const abbr=b&&b.name===name?b.abbr:(s.abbr&&s.id&&acct(s.id)?.name===name?s.abbr:name.replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,3).toUpperCase()||name.slice(0,3).toUpperCase());
   if(s.id){Object.assign(acct(s.id),{name,bg:s.color,fg:s.fg,type:s.type,bal,abbr});toast('Account updated');}
@@ -1344,8 +1629,10 @@ function saveAcct(){
 }
 async function delAcct(){
   const a=acct(ui.ac.id);if(!a)return;
-  const n=db.txns.filter(t=>t.aid===a.id||t.tid===a.id).length;
-  if(!await ask(`Delete ${a.name}?`,n?`This also deletes ${n} transaction${n>1?'s':''} linked to it.`:'This can\'t be undone.'))return;
+  const n=db.txns.filter(t=>t.aid===a.id||t.tid===a.id).length,ns=(db.stocks||[]).filter(x=>x.aid===a.id).length;
+  const parts=[n?`${n} transaction${n>1?'s':''}`:'',ns?`${ns} stock${ns>1?'s':''} and their trades`:''].filter(Boolean).join(' and ');
+  if(!await ask(`Delete ${a.name}?`,parts?`This also deletes ${parts} linked to it.`:'This can\'t be undone.'))return;
+  db.stocks=(db.stocks||[]).filter(x=>x.aid!==a.id);
   db.accounts=db.accounts.filter(x=>x.id!==a.id);
   db.txns=db.txns.filter(t=>t.aid!==a.id&&t.tid!==a.id);
   if(db.planLinks)for(const k in db.planLinks)if(db.planLinks[k]===a.id)delete db.planLinks[k];
@@ -1361,15 +1648,36 @@ function renderAD(){
   $('#ad-hd').innerHTML=`${logo(a,48)}<div class="m"><div class="n">${esc(a.name)}</div><div class="ty">${esc(ATYPES[a.type]||a.type)} account</div></div>
     <button class="iconbtn" style="box-shadow:none" onclick="openAcct('${a.id}')" aria-label="Edit account">${ic('edit')}</button>
     <button class="iconbtn" style="box-shadow:none" onclick="closeSheets()" aria-label="Close">${ic('x')}</button>`;
-  $('#ad-bal').innerHTML=`<div class="k">Current balance</div><div class="v ${bal<0?'neg':''}">${bal<0?'−':''}${fm(bal)}</div>`;
-  $('#ad-qa').innerHTML=[['income','Income','in','var(--pos)'],['expense','Expense','out','var(--neg)'],['transfer','Transfer','swap','var(--acc)']]
-    .map(([k,l,i,c])=>`<button onclick="adQuick('${k}')"><span class="ib" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('');
+  if(a.type==='invest'){
+    const p=investParts(a.id),cash=bal-p.stocks;
+    $('#ad-bal').innerHTML=`<div class="k">Total value</div><div class="v">${bal<0?'−':''}${fm(bal)}</div>
+      <div class="split"><div><div class="k">Stocks</div><div class="v">${fm(p.stocks)}</div></div><div><div class="k">Cash</div><div class="v ${cash<0?'neg':''}">${cash<0?'−':''}${fm(cash)}</div></div></div>`;
+    $('#ad-qa').innerHTML=[['deposit','Deposit','in','var(--pos)'],['buy','Buy stock','trend','var(--acc)'],['withdraw','Withdraw','out','var(--neg)']]
+      .map(([k,l,i,c])=>`<button onclick="adInvest('${k}')"><span class="ib" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('');
+  }else{
+    const owed=isDebt(a.type)&&bal<0;
+    $('#ad-bal').innerHTML=`<div class="k">${owed?'Amount owed':'Current balance'}</div><div class="v ${bal<0?'neg':''}">${owed?'':bal<0?'−':''}${fm(bal)}</div>`;
+    $('#ad-qa').innerHTML=(isDebt(a.type)?[['expense',a.type==='loan'?'Charge':'Spend','out','var(--neg)'],['pay','Pay','in','var(--pos)'],['transfer','Transfer','swap','var(--acc)']]
+      :[['income','Income','in','var(--pos)'],['expense','Expense','out','var(--neg)'],['transfer','Transfer','swap','var(--acc)']])
+      .map(([k,l,i,c])=>`<button onclick="adQuick('${k}')"><span class="ib" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('');
+  }
   $('#ad-filters').innerHTML=[['all','All'],['income','Income'],['expense','Expenses'],['transfer','Transfers']].map(([k,l])=>`<button class="${ui.adFilter===k?'on':''}" onclick="ui.adFilter='${k}';renderAD()">${l}</button>`).join('');
   let list=sortTx(db.txns.filter(t=>t.aid===a.id||(t.type==='transfer'&&t.tid===a.id)));
   if(ui.adFilter!=='all')list=list.filter(t=>t.type===ui.adFilter);
   $('#ad-list').innerHTML=list.length?groupedList(list):`<div class="empty"><div class="ei">${ic('list')}</div><b>No transactions</b>Use the buttons above to add one.</div>`;
 }
-function adQuick(type){openTxn(null,{type,aid:ui.adId});}
+function adQuick(type){
+  const other=db.accounts.find(x=>x.id!==ui.adId&&!isDebt(x.type)&&x.type!=='invest')?.id;
+  if(type==='pay')return openTxn(null,{type:'transfer',aid:other||ui.adId,tid:ui.adId}); // payment: from a bank/wallet into the card/loan
+  openTxn(null,{type,aid:ui.adId});
+}
+function adInvest(k){
+  const id=ui.adId,other=db.accounts.find(x=>x.id!==id&&x.type!=='invest'&&!isDebt(x.type))?.id;
+  if(k==='buy'){ui.tradeAid=id;return openTrade('buy');}
+  if(!other)return toast('Add a bank or wallet first');
+  if(k==='deposit')openTxn(null,{type:'transfer',aid:other,tid:id,note:'Deposit to '+acct(id).name});
+  else openTxn(null,{type:'transfer',aid:id,tid:other,note:'Withdraw from '+acct(id).name});
+}
 
 // ══════════════════════════════════
 // BUDGET
@@ -1671,7 +1979,7 @@ function renderSettings(){
   const p=themePref();
   $('#set-theme').innerHTML=[['system','Auto','auto'],['light','Light','sun'],['dark','Dark','moon']].map(([k,l,i])=>`<button class="${p===k?'on':''}" onclick="setTheme('${k}')" style="display:flex;align-items:center;justify-content:center;gap:6px">${ic(i)}${l}</button>`).join('');
 }
-function changeCcy(code){setCcy(code);save();syncSym();renderSettings();render();refreshFx(true).then(()=>{if(ui.scr==='home')renderHome();});toast(`Currency set to ${code}`);}
+function changeCcy(code){setCcy(code);save();syncSym();renderSettings();render();refreshFx().then(()=>{if(ui.scr==='home')renderHome();});toast(`Currency set to ${code}`);}
 function syncSym(){$$('.sym').forEach(e=>e.textContent=db.settings.sym);}
 function exportData(){
   const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
