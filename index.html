@@ -11,6 +11,11 @@
 <meta name="apple-mobile-web-app-title" content="cove">
 <meta name="theme-color" content="#0A0B0D">
 <link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:title" content="cove — budgeting that knows where your money goes">
+<meta property="og:description" content="Plan where every paycheck goes, then track every peso across banks, e-wallets, cards and stocks. Still in the works — try the free demo, no sign-up.">
+<meta property="og:image" content="https://apxaiconsulting.github.io/cove/icon-512.png">
+<meta property="og:url" content="https://apxaiconsulting.github.io/cove/">
+<meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -435,6 +440,14 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .setrow.neg,.setrow.neg svg.i{color:var(--neg)}
 .setrow:active{background:var(--s2)}
 
+.demobar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;padding:12px 14px;margin:2px 0 6px;border-radius:16px;background:var(--acc-soft);border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);font-size:13px;color:var(--text)}
+.demobar b{font-weight:800}
+.demobtns{display:flex;gap:8px}
+.demobtns .btn{height:36px;font-size:13px}
+body.demo .no-demo{display:none!important}
+.demo-only{display:none}
+body.demo .demo-only{display:inline}
+
 /* Account detail */
 .adhd{display:flex;align-items:center;gap:14px;margin:4px 0 18px}
 .adhd .m{flex:1;min-width:0}
@@ -509,8 +522,9 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
       </svg>
     </div>
     <div class="onb-foot">
-      <button class="btn" onclick="showAuth('signup')">Get started</button>
-      <button class="btn ghost" onclick="showAuth('signin')">I already have an account</button>
+      <div class="mut" style="text-align:center;font-size:13px;font-weight:600;margin-bottom:2px">cove is in early access — try the free demo while we finish it.</div>
+      <a class="btn" href="./?demo" style="text-decoration:none">Try the demo</a>
+      <button class="btn ghost" onclick="showAuth('signin')">Sign in</button>
       <div class="credit">APX LABS · <a href="privacy.html" target="_blank" rel="noopener" style="color:inherit">PRIVACY</a></div>
     </div>
   </section>
@@ -574,6 +588,10 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
   </aside>
 
   <main class="main">
+    <div class="demobar" id="demobar" hidden>
+      <div><b>cove is still in the works — this demo is free.</b> It's sample data; anything you change stays on this device.</div>
+      <div class="demobtns"><button class="btn ghost sm" onclick="resetDemo()">Reset demo</button></div>
+    </div>
     <!-- HOME -->
     <section class="scr" id="scr-home">
       <div class="top">
@@ -781,7 +799,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
   <div class="grab"></div>
   <div class="shd"><h3>Settings</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
   <div class="fld"><span class="lbl">Account</span>
-    <div class="acctrow"><div class="m"><div id="set-email"></div><small><i id="set-dot"></i><span id="set-sync"></span></small></div><button class="btn ghost sm" style="background:var(--surf)" onclick="signOut()">Sign out</button></div>
+    <div class="acctrow"><div class="m"><div id="set-email"></div><small><i id="set-dot"></i><span id="set-sync"></span></small></div><button class="btn ghost sm" style="background:var(--surf)" onclick="DEMO?location.assign('./'):signOut()"><span class="no-demo">Sign out</span><span class="demo-only">Exit demo</span></button></div>
   </div>
   <div class="fld"><span class="lbl">Currency</span><div class="chips wrap" id="set-ccy"></div></div>
   <div class="fld"><span class="lbl">Appearance</span><div class="seg" id="set-theme"></div></div>
@@ -799,7 +817,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <div class="list" style="box-shadow:none">
       <a class="setrow" href="privacy.html" target="_blank" rel="noopener"><span>Privacy policy</span><svg class="i"><use href="#i-chevR"/></svg></a>
       <a class="setrow" href="mailto:apx.gst@gmail.com?subject=cove%20support"><span>Contact support</span><svg class="i"><use href="#i-chevR"/></svg></a>
-      <button class="setrow neg" onclick="deleteAccount()"><span>Delete account</span><svg class="i"><use href="#i-trash"/></svg></button>
+      <button class="setrow neg no-demo" onclick="deleteAccount()"><span>Delete account</span><svg class="i"><use href="#i-trash"/></svg></button>
     </div>
     <div class="mut" style="font-size:12.5px;margin-top:6px">Deleting your account permanently removes your login and all your cove data from our servers.</div>
   </div>
@@ -1026,13 +1044,14 @@ const FIXED='Fixed Amount', PCT='Percentage', REST='Rest';
 // ══════════════════════════════════
 const SUPABASE_URL='https://oxrixfkhjzuyukkbplyd.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_vpbvsuPGERa_rJ1FBQ98BA_7bV9KJnB';
-const sb=(window.supabase&&/^https:/.test(SUPABASE_URL))?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const DEMO=/[?&]demo(=|&|$)/i.test(location.search);
+const sb=DEMO?null:(window.supabase&&/^https:/.test(SUPABASE_URL))?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 let user=null;
 
 // ══════════════════════════════════
 // STATE  (local cache in localStorage 'cove4', same shape as before login existed)
 // ══════════════════════════════════
-const KEY='cove4';
+const KEY=DEMO?'cove_demo':'cove4';   // the demo never touches a real account's local cache
 const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
@@ -1398,10 +1417,11 @@ function renderSpark(tot){
 // ══════════════════════════════════
 const FINNHUB_KEY='db0bn1hr01qn6m00ap00db0bn1hr01qn6m00ap0g';   // free market-data key (read-only prices; can't access any brokerage)
 const QUOTE_MS=30000;
+const QKEY=DEMO?'cove_demo_quotes':'cove_quotes';
 const MARKETS={US:{label:'US',flag:'🇺🇸',cur:'USD',loc:'en-US'},PH:{label:'PH',flag:'🇵🇭',cur:'PHP',loc:'en-PH'}};
 let quotes={},fx={},quoteTimer=null,lastQuoteAt=0;
-try{quotes=JSON.parse(lsGet('cove_quotes')||'{}');fx=JSON.parse(lsGet('cove_fx')||'{}');}catch(e){}
-const pricesOn=()=>/^[a-z0-9]{10,}$/i.test(FINNHUB_KEY);
+try{quotes=JSON.parse(lsGet(QKEY)||'{}');fx=JSON.parse(lsGet('cove_fx')||'{}');}catch(e){}
+const pricesOn=()=>DEMO||/^[a-z0-9]{10,}$/i.test(FINNHUB_KEY);
 const mkt=s=>MARKETS[s?.market]||MARKETS.US;
 const money=(v,cur='USD',dp=2)=>{const o={style:'currency',currency:cur,currencyDisplay:'narrowSymbol',minimumFractionDigits:dp,maximumFractionDigits:dp};let t;try{t=Math.abs(v).toLocaleString(cur==='PHP'?'en-PH':'en-US',o);}catch(e){t=cur+' '+Math.abs(v).toFixed(dp);}return(v<0?'−':'')+t;};
 const usd=(v,dp=2)=>money(v,'USD',dp);
@@ -1415,6 +1435,7 @@ function toLocal(v,cur){
 }
 
 async function fetchQuote(t){
+  if(DEMO)return demoQuote(t);
   if(!pricesOn())return null;
   try{
     const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(t)}&token=${FINNHUB_KEY}`);
@@ -1436,7 +1457,7 @@ async function refreshQuotes(){
   if(!list.length||!pricesOn()||!navigator.onLine){if(ui.scr==='home'&&$('#app').style.display==='block')renderHome();return;}
   const before={};list.forEach(t=>before[t]=quotes[t]?.c);
   for(const t of list){const q=await fetchQuote(t);if(q&&!q.missing)quotes[t]=q;}
-  lastQuoteAt=Date.now();lsSet('cove_quotes',JSON.stringify(quotes));
+  lastQuoteAt=Date.now();lsSet(QKEY,JSON.stringify(quotes));
   if(ui.scr==='home'&&$('#app').style.display==='block'){
     renderHome();
     list.forEach(t=>{const b=before[t],n=quotes[t]?.c;if(b&&n&&b!==n){const el=$(`.stk[data-t="US:${t}"]`);el?.classList.add(n>b?'flash-up':'flash-down');}});
@@ -1446,7 +1467,7 @@ async function refreshQuotes(){
 function startQuotes(){
   clearInterval(quoteTimer);
   refreshQuotes();
-  quoteTimer=setInterval(()=>{if(document.visibilityState==='visible'&&user&&(db.stocks||[]).length)refreshQuotes();},QUOTE_MS);
+  quoteTimer=setInterval(()=>{if(document.visibilityState==='visible'&&(user||DEMO)&&(db.stocks||[]).length)refreshQuotes();},QUOTE_MS);
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&user&&Date.now()-lastQuoteAt>QUOTE_MS)refreshQuotes();});
 
@@ -1619,7 +1640,7 @@ function tradeLookup(){
     const q=await fetchQuote(t);
     if(cleanTicker($('#tr-ticker').value)!==t||ui.tr.market!=='US')return;
     tradeQ=q;
-    if(q&&!q.missing){quotes[t]=q;lsSet('cove_quotes',JSON.stringify(quotes));if(!num($('#tr-price').value))$('#tr-price').value=q.c;}
+    if(q&&!q.missing){quotes[t]=q;lsSet(QKEY,JSON.stringify(quotes));if(!num($('#tr-price').value))$('#tr-price').value=q.c;}
     renderTradeForm();
   },450);
 }
@@ -2347,7 +2368,7 @@ function plTemplate(t){
 // ══════════════════════════════════
 function openSettings(){renderSettings();openSheet('sh-set');}
 function renderSettings(){
-  $('#set-email').textContent=user?.email||'Not signed in';
+  $('#set-email').textContent=DEMO?'Demo mode · sample data':(user?.email||'Not signed in');
   renderSync();
   $('#set-ccy').innerHTML=CCYS.map(c=>`<button class="chip txt ${db.settings.ccy===c.code?'on':''}" onclick="changeCcy('${c.code}')">${c.flag} ${c.code}</button>`).join('');
   const p=themePref();
@@ -2584,7 +2605,7 @@ const isDirty=()=>lsGet('cove_dirty')==='1';
 function schedulePush(){clearTimeout(pushTimer);pushTimer=setTimeout(push,700);}
 function setSync(st){syncState=st;if(st==='ok')lastSync=Date.now();renderSync();}
 function renderSync(){
-  const t={ok:lastSync?'Synced':'Up to date',busy:'Syncing…',offline:'Offline · will sync when you reconnect',error:'Sync problem · retrying',local:'Not connected to the cloud'}[syncState];
+  const t={ok:lastSync?'Synced':'Up to date',busy:'Syncing…',offline:'Offline · will sync when you reconnect',error:'Sync problem · retrying',local:DEMO?'Saved on this device only':'Not connected to the cloud'}[syncState];
   const d=$('#set-dot'),e=$('#set-sync');if(!d)return;
   d.className=syncState==='ok'?'ok':syncState==='error'?'err':syncState==='busy'?'busy':'';e.textContent=t;
 }
@@ -2625,7 +2646,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 let authMode='signup',authBusy=false;
 const AUTH={
   signup:{t:'Create your account',s:'Your budget syncs across your phone and computer.',b:'Create account',q:'Already have an account?',l:'Sign in',to:'signin'},
-  signin:{t:'Welcome back',s:'Sign in to pick up where you left off.',b:'Sign in',q:'New to cove?',l:'Create an account',to:'signup'},
+  signin:{t:'Welcome back',s:'Sign in to pick up where you left off.',b:'Sign in',q:'No account yet?',l:'Try the demo',to:'demo'},
   forgot:{t:'Reset your password',s:'We\'ll email you a link to choose a new one.',b:'Send reset link',q:'Remembered it?',l:'Sign in',to:'signin'},
   reset:{t:'Choose a new password',s:'Use at least 8 characters.',b:'Save password'},
 };
@@ -2641,7 +2662,7 @@ function showAuth(mode){
   $('#au-pass').value='';
   $('#au-forgot').hidden=mode!=='signin';
   $('#au-back').hidden=mode==='reset';
-  $('#au-switch').innerHTML=m.q?`${m.q} <button class="link" type="button" onclick="showAuth('${m.to}')">${m.l}</button>`:'';
+  $('#au-switch').innerHTML=m.q?`${m.q} ${m.to==='demo'?`<a class="link" href="./?demo">${m.l}</a>`:`<button class="link" type="button" onclick="showAuth('${m.to}')">${m.l}</button>`}`:'';
   authMsg('');
   setTimeout(()=>(mode==='reset'?$('#au-pass'):$('#au-email')).focus(),50);
 }
@@ -2650,6 +2671,7 @@ function authError(err){
   const m=String(err?.message||err||'');
   if(/invalid login/i.test(m))return'Wrong email or password.';
   if(/already registered|already exists/i.test(m))return'That email already has an account. Try signing in.';
+  if(/signups? not allowed|signup_disabled/i.test(m))return'cove is in early access, so new sign-ups are closed for now. Try the demo instead.';
   if(/not confirmed/i.test(m))return'Confirm your email first. Check your inbox for the link.';
   if(/rate limit|too many|security purposes/i.test(m))return'Too many attempts. Wait a minute, then try again.';
   if(/fetch|network|load failed/i.test(m))return'Can\'t reach the server. Check your connection.';
@@ -2734,12 +2756,82 @@ async function signOut(){
 }
 
 // ══════════════════════════════════
+// DEMO MODE  (…/cove/?demo) — fictional sample data, no sign-in, nothing leaves the device,
+// simulated stock prices (never calls Finnhub), separate local storage from real accounts.
+// ══════════════════════════════════
+const DEMO_PX={NVDA:233.95,AAPL:233.6,VOO:552.3,MSFT:517.53,TSLA:438.2,GOOGL:241.7,AMZN:219.8,META:742.1,SPY:668.4,QQQ:603.9};
+function demoQuote(t){
+  let base=DEMO_PX[t];
+  if(!base){let h=0;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;base=20+(h%480);}   // any ticker gets a stable fake price
+  const pc=Math.round(base*0.992*100)/100,c=Math.round(base*(1+(Math.random()-.45)*0.006)*100)/100;
+  return{c,pc,t:Date.now()};
+}
+function makeDemoData(){
+  let seed=20261003;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  const pick=a=>a[Math.floor(rnd()*a.length)],amt=(lo,hi)=>Math.round((lo+rnd()*(hi-lo))*4)/4;
+  const A=(id,name,abbr,bg,type,bal,extra={})=>({id,name,abbr,bg,fg:'#fff',type,bal,ccy:'PHP',...extra});
+  const accounts=[
+    A('bpi','BPI Savings','BPI','#D6322E','bank',48250),
+    A('gcash','GCash','G','#0B6BFF','ewallet',2150.5),
+    A('maya','Maya Savings','maya','#000000','bank',18000,{fg:'#3DDC84',label:'Emergency Fund'}),
+    A('gotyme','GoTyme Savings','GO','#00E5FF','bank',9600,{fg:'#0B1220'}),
+    A('bdocc','BDO Credit Card','BDO','#0B4EA2','credit',-6420.75),
+    A('wise','Wise','W','#9FE870','ewallet',0,{fg:'#163300',pockets:[{ccy:'USD',bal:215.4}]}),
+    A('inv','Gotrade','INV','#7C3AED','invest',2500,{label:'Stocks'}),
+  ];
+  const txns=[];let n=0;const today=new Date();today.setHours(0,0,0,0);
+  const bal={};accounts.forEach(a=>bal[a.id]=a.bal);
+  const X=(date,amt,aid,tid,note,fee)=>{txns.push({id:'d'+(n++),amt,type:'transfer',cid:'other_e',aid,tid,date:isoDay(date),note,ts:date.getTime()+n*60000,...(fee?{fee}:{})});bal[aid]-=amt+(fee||0);bal[tid]+=amt;};
+  const T=(date,type,amt,cid,aid,note,x={})=>{
+    if(type==='expense'&&aid==='gcash'&&!x.cur&&bal.gcash<amt+(x.fee||0)+300)X(date,pick([3000,4000,5000]),'bpi','gcash','Cash in',15); // top up GCash when it runs low
+    txns.push({id:'d'+(n++),amt,type,cid,aid,tid:null,date:isoDay(date),note,ts:date.getTime()+n*60000,...x});
+    if(!x.cur)bal[aid]+=(type==='income'?amt:-amt)-(x.fee||0);
+  };
+  for(let i=95;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);const dom=d.getDate(),dow=d.getDay(),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    if(dom===15||dom===last)T(d,'income',32500,'salary','bpi','Salary');
+    if(dom===10)T(d,'income',350,'freelance','wise','Upwork — logo project',{cur:'USD'});
+    if(dom===5)T(d,'expense',14000,'bills','bpi','Rent');
+    if(dom===18)T(d,'expense',1699,'bills','bpi','PLDT Fiber');
+    if(dom===20)T(d,'expense',amt(2150,3400),'bills','gcash','Meralco',{fee:5});
+    if(dom===12)T(d,'expense',549,'fun','bdocc','Netflix');
+    if(dom===14)T(d,'expense',194,'fun','bdocc','Spotify');
+    if(dom===16){X(d,5000,'bpi','inv','Deposit to Gotrade',15);X(d,5000,'bpi','maya','Emergency fund');}
+    if(dom===25&&bal.bdocc<0)X(d,Math.round(-bal.bdocc*100)/100,'bpi','bdocc','Card payment — full balance');
+    if(dow===6)T(d,'expense',amt(1850,4200),'groceries','bpi',pick(['SM Supermarket','Puregold','Robinsons Supermarket']));
+    const meals=dow===0||dow===6?2:1+(rnd()<.5?1:0);
+    for(let k=0;k<meals;k++)T(d,'expense',amt(85,620),'food',rnd()<.7?'gcash':'bdocc',pick(['Jollibee','Mang Inasal','7-Eleven','Starbucks','GrabFood','Chowking','Coffee Project','Ministop','Tokyo Tokyo']));
+    if(dow>=1&&dow<=5&&rnd()<.75)T(d,'expense',amt(95,380),'transport','gcash',pick(['Grab','Angkas','JoyRide','Jeep + MRT']));
+    if(rnd()<.08)T(d,'expense',amt(299,2499),'shopping','bdocc',pick(['Shopee','Lazada','Uniqlo','Decathlon']));
+    if(rnd()<.05)T(d,'expense',amt(350,1800),'health','gcash',pick(['Mercury Drug','Watsons','Dental check-up']));
+    if(rnd()<.06)T(d,'expense',amt(380,1500),'fun','bdocc',pick(['Movie night','Bowling','Concert merch','Steam game']));
+  }
+  const now=new Date(),bk=bkey(now);
+  const open=(ticker,market,shares,cost,extra={})=>({id:'s_'+ticker,ticker,market,aid:'inv',shares,cost,realized:0,trades:[{id:'o_'+ticker,type:'buy',shares,price:cost,date:null,ts:0,opening:true}],...extra});
+  return{
+    settings:{ccy:'PHP',sym:'₱',loc:'en-PH',home:'PHP',onboarded:true},
+    accounts,txns,
+    budgets:{[bk]:{food:9000,transport:3500,groceries:12000,bills:22000,shopping:4000,fun:2500}},
+    plan:{income:65000,commitments:[{name:'Rent',value:'14000',type:FIXED},{name:'Internet',value:'1699',type:FIXED},{name:'Utilities',value:'3000',type:FIXED}],
+      allocations:[{name:'Emergency Fund',value:'10',type:PCT},{name:'Investing',value:'5000',type:FIXED},{name:'Travel',value:'5',type:PCT},{name:'Lifestyle',value:'',type:REST}]},
+    planLinks:{'Emergency Fund':'maya','Investing':'inv'},
+    stocks:[open('NVDA','US',3,128.4),open('AAPL','US',2,201.5),open('VOO','US',0.5,512),open('JFC','PH',50,238,{px:{c:246.4,at:Date.now()}})],
+  };
+}
+function resetDemo(){db=normalize(makeDemoData());persist();histReset();closeSheets();go('home');toast('Demo reset');}
+
+// ══════════════════════════════════
 // BOOT
 // ══════════════════════════════════
 (async function boot(){
   applyTheme();
   const splash=$('#splash');
   const hideSplash=()=>{splash.classList.add('gone');setTimeout(()=>splash.remove(),500);};
+  if(DEMO){
+    document.body.classList.add('demo');$('#demobar').hidden=false;
+    load();if(!hasData(db))db=normalize(makeDemoData());persist();
+    setSync('local');showApp();histReset();setTimeout(hideSplash,350);return;
+  }
   let session=null,recovery=/type=recovery/.test(location.hash);
   if(sb){
     sb.auth.onAuthStateChange((ev,s)=>{
