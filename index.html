@@ -132,7 +132,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .acard:active{transform:scale(.98)}
 .acard .nm{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acard .bl{font-size:18px;font-weight:800;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acard .ty{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.acard .ty{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-left:8px;text-align:right}
 .acard .tp{display:flex;justify-content:space-between;align-items:center}
 .acard.add{align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--s3);background:transparent;color:var(--muted);font-weight:700;font-size:13px;box-shadow:none;flex-basis:110px}
 .logo{display:grid;place-items:center;font-weight:800;letter-spacing:-.02em;flex-shrink:0;line-height:1}
@@ -389,6 +389,10 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .tog input{width:20px;height:20px;accent-color:var(--acc);flex-shrink:0}
 .tog-hint{font-size:12.5px;color:var(--muted);margin-top:6px;padding:0 4px}
 .tog-hint.warn{color:var(--warn)}
+
+.csvmap{display:grid;grid-template-columns:1fr 1fr;gap:10px 10px;margin-top:14px}
+.csvmap .lbl{margin-bottom:5px;font-size:12px}
+.csvmap select.in{height:42px;font-size:13.5px;padding:0 10px}
 
 /* Account detail */
 .adhd{display:flex;align-items:center;gap:14px;margin:4px 0 18px}
@@ -647,6 +651,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
   </div>
   <div class="fld"><label class="lbl" for="ac-name">Account name</label><input class="in" id="ac-name" placeholder="e.g. BDO Savings" autocomplete="off"></div>
   <div class="fld"><span class="lbl">Type</span><div class="chips wrap" id="ac-types"></div></div>
+  <div class="fld"><label class="lbl" for="ac-label">Type label <span style="font-weight:500">(optional — rename the type shown on the card)</span></label><input class="in" id="ac-label" maxlength="20" autocomplete="off" placeholder="Savings"></div>
   <div class="fld"><span class="lbl">Color</span><div class="swatches" id="ac-colors"></div></div>
   <div class="fld"><label class="lbl" for="ac-bal" id="ac-bal-lbl">Starting balance</label><div class="money"><span class="sym"></span><input class="in" id="ac-bal" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div></div>
   <div class="btnrow">
@@ -716,10 +721,24 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
       <button class="btn ghost" onclick="exportData()"><svg class="i"><use href="#i-download"/></svg>Export</button>
       <button class="btn ghost" onclick="$('#imp').click()"><svg class="i"><use href="#i-upload"/></svg>Import</button>
     </div>
-    <input type="file" id="imp" accept="application/json,.json" hidden onchange="importData(this)">
-    <div class="mut" style="font-size:12.5px;margin-top:8px">Your data is saved to your account and syncs to every device you sign in on. Export keeps an offline copy.</div>
+    <input type="file" id="imp" accept=".csv,.json,.txt,text/csv,text/plain,application/json,application/vnd.ms-excel" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" onchange="importData(this)">
+    <div class="mut" style="font-size:12.5px;margin-top:8px">Your data is saved to your account and syncs to every device you sign in on. Export keeps an offline copy. Import accepts a cove backup or a CSV from another app or your bank.</div>
   </div>
   <div class="fld"><button class="btn danger" onclick="clearAll()"><svg class="i"><use href="#i-trash"/></svg>Erase all data</button></div>
+</div>
+
+<!-- CSV import -->
+<div class="sheet" id="sh-csv" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="shd"><div><h3>Import CSV</h3><div class="mut" style="font-size:13px;font-weight:600" id="csv-file"></div></div><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="mut" style="font-size:13px;margin-top:4px">cove guessed which column is which. Fix anything that's wrong — the preview updates as you go.</div>
+  <div class="csvmap" id="csv-map"></div>
+  <div id="csv-opts"></div>
+  <div class="sec" style="margin-top:20px"><h2>Preview</h2></div>
+  <div id="csv-prev"></div>
+  <div class="qprev" id="csv-sum"></div>
+  <div id="csv-accts"></div>
+  <button class="btn" id="csv-go" style="margin-top:16px" onclick="runCsvImport()">Import</button>
 </div>
 
 <!-- Planner -->
@@ -860,7 +879,7 @@ const PH_BRANDS={
   netbank:['Netbank','NB','#3510E6'],ownbank:['OwnBank','OWN','#111111'],pagibig:['Pag-IBIG','MP2','#FFFFFF','#1E3A8A'],
   pbb:['PBB','PBB','#FFFFFF','#0F4C81'],pbcom:['PBCOM','PBC','#F80000'],pnb:['PNB','PNB','#1E3A8A'],psbank:['PSBank','PSB','#FFFFFF','#1D4ED8'],
   rcbc:['RCBC','RCBC','#3E8ED0'],rural:['Rural Bank','RB','#78716C'],salmon:['Salmon','S','#FFFFFF','#F2542D'],
-  seabank:['SeaBank','SEA','#EA580C'],securitybank:['Security Bank','SB','#2B3A55','#9BE15D'],singlife:['Singlife','SL','#F20F14'],
+  seabank:['SeaBank','SEA','#EA580C'],banko:['BanKo','BK','#E4002B'],securitybank:['Security Bank','SB','#2B3A55','#9BE15D'],singlife:['Singlife','SL','#F20F14'],
   tonik:['Tonik','T','#7B61FF'],unionbank:['UnionBank','UB','#FF6A13'],uniondigital:['UnionDigital','UD','#4B2C82'],uno:['UNO Bank','UNO','#111111','#C084FC'],
   atome:['Atome','A','#F0FF5F','#111111'],zed:['Zed','Z','#FFF000','#111111'],billease:['Billease','BE','#4F8DF7'],
   bankofmakati:['Bank of Makati','BMI','#FFFFFF','#1E40AF'],cashalo:['Cashalo','C','#FFFFFF','#F5A300'],citysavings:['City Savings','CS','#5B2A86'],
@@ -869,7 +888,7 @@ const PH_BRANDS={
 };
 const PH_CATALOG={
   wallet:'autosweep beep gcash gotyme grab hellomoney joyride lazada marcopay mcash maya palawanpay pandapay payoneer paypal peddlr raket shopback shopeepay starbucks tiktok tripko vybe wise'.split(' ').map(k=>[k,'Wallet']),
-  savings:[['aub','Savings'],['bdo','Savings'],['bpi','Savings'],['chinabank','Savings'],['cimb','Savings'],['dbp','Savings'],['diskartech','Savings'],['eastwest','Savings'],['farmbank','Time Deposit'],['gotyme','Savings'],['hsbc','Savings'],['komo','Savings'],['landbank','Savings'],['maribank','Savings'],['maribank','Time Deposit'],['maya','Savings'],['maya','Personal Goals'],['maya','Time Deposit'],['maybank','Savings'],['metrobank','Savings'],['metrobank','Time Deposit'],['netbank','Savings'],['netbank','Time Deposit'],['ownbank','Savings'],['ownbank','Own Wish'],['ownbank','Time Deposit'],['pagibig','MP2 Savings'],['palawanpay','Savings'],['pbb','Savings'],['pbcom','Savings'],['pbcom','Time Deposit'],['pnb','Savings'],['pnb','Time Deposit'],['psbank','Savings'],['rcbc','Savings'],['rcbc','Time Deposit'],['rural','Savings'],['rural','Time Deposit'],['salmon','Savings'],['salmon','Time Deposit'],['seabank','Savings'],['securitybank','Savings'],['securitybank','Time Deposit'],['singlife','Savings'],['tonik','Savings'],['tonik','Time Deposit'],['unionbank','Savings'],['unionbank','Time Deposit'],['uniondigital','Savings'],['uniondigital','Time Deposit'],['uno','Savings'],['uno','Time Deposit']],
+  savings:[['aub','Savings'],['banko','Savings'],['bdo','Savings'],['bpi','Savings'],['chinabank','Savings'],['cimb','Savings'],['dbp','Savings'],['diskartech','Savings'],['eastwest','Savings'],['farmbank','Time Deposit'],['gotyme','Savings'],['hsbc','Savings'],['komo','Savings'],['landbank','Savings'],['maribank','Savings'],['maribank','Time Deposit'],['maya','Savings'],['maya','Personal Goals'],['maya','Time Deposit'],['maybank','Savings'],['metrobank','Savings'],['metrobank','Time Deposit'],['netbank','Savings'],['netbank','Time Deposit'],['ownbank','Savings'],['ownbank','Own Wish'],['ownbank','Time Deposit'],['pagibig','MP2 Savings'],['palawanpay','Savings'],['pbb','Savings'],['pbcom','Savings'],['pbcom','Time Deposit'],['pnb','Savings'],['pnb','Time Deposit'],['psbank','Savings'],['rcbc','Savings'],['rcbc','Time Deposit'],['rural','Savings'],['rural','Time Deposit'],['salmon','Savings'],['salmon','Time Deposit'],['seabank','Savings'],['securitybank','Savings'],['securitybank','Time Deposit'],['singlife','Savings'],['tonik','Savings'],['tonik','Time Deposit'],['unionbank','Savings'],['unionbank','Time Deposit'],['uniondigital','Savings'],['uniondigital','Time Deposit'],['uno','Savings'],['uno','Time Deposit']],
   credit:'atome aub bankcom bdo bpi chinabank eastwest hsbc landbank maribank maya maybank metrobank pnb psbank rcbc salmon securitybank unionbank zed'.split(' ').map(k=>[k,'Credit Card']),
   loans:'atome aub bdo billease bankofmakati bpi cashalo chinabank cimb citysavings ctbc eastwest gcash gotyme grabloan homecredit juanhand landbank lazada maribank maya metrobank pbcom psbank rcbc rural salmon securitybank shopee skyro sss tala tiktok unionbank'.split(' ').map(k=>[k,'Loan']),
 };
@@ -911,6 +930,7 @@ const TRANSFER={name:'Transfer',icon:'swap',color:'#6E9EF0'};
 const ACOLORS=['#10B981','#0066FF','#2C5FC9','#6B21A8','#EF4444','#F59E0B','#EC4899','#F97316','#06B6D4','#002B5C','#4B5563'];
 const ATYPES={ewallet:'Wallet',bank:'Savings',cash:'Cash',credit:'Credit',loan:'Loan',invest:'Investment'};
 const isDebt=t=>t==='credit'||t==='loan';
+const typeLabel=a=>a.label||ATYPES[a.type]||a.type||'';
 const PLAN_COLORS=['#5B8DEF','#10B981','#F59E0B','#8B5CF6','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4','#84CC16'];
 const FIXED='Fixed Amount', PCT='Percentage';
 
@@ -962,7 +982,22 @@ const bkey=d=>`${d.getFullYear()}_${d.getMonth()}`;
 const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.\-]/g,''));return isFinite(n)?n:0;};
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const loc=()=>db.settings.loc||'en-PH';
-const cat=id=>CATS.find(c=>c.id===id)||{name:'Other',icon:'more',color:'#94A3B8'};
+const cat=id=>CATS.find(c=>c.id===id)||(db.cats||[]).find(c=>c.id===id)||{name:'Other',icon:'more',color:'#94A3B8'};
+const allCats=t=>CATS.filter(c=>c.t===t&&!/^other_/.test(c.id)).concat((db.cats||[]).filter(c=>c.t===t),CATS.filter(c=>c.t===t&&/^other_/.test(c.id)));
+// User-defined categories (e.g. from a CSV import) — synced with the account in db.cats
+function catIcon(name){
+  const n=String(name||'').toLowerCase();
+  const m=[[/laund/,'sparkle'],[/golf|sport|gym/,'target'],[/trip|travel|airbnb|hotel|flight/,'plane'],[/subscr/,'sparkle'],[/cloth|apparel/,'bag'],[/fee|tax|charge/,'card'],[/withdraw|atm/,'wallet'],[/rent|hous/,'home'],[/family|support|parent/,'heart'],[/night|bar|party|drink/,'film'],[/hair|salon|groom/,'sparkle'],[/macbook|laptop|gadget|phone|tech/,'laptop'],[/interest|dividend/,'trend'],[/cashback|refund|rebate/,'coins'],[/bonus|gift/,'gift'],[/credit card|loan|debt/,'card'],[/vape|smok|cig/,'more'],[/business|store/,'store'],[/salary|payroll/,'briefcase']]
+    .find(([r])=>r.test(n));
+  return m?m[1]:planIcon(name);
+}
+function makeCustomCat(name,type){
+  db.cats=db.cats||[];
+  const k=name.trim().toLowerCase();
+  let c=db.cats.find(x=>x.t===type&&x.name.toLowerCase()===k);if(c)return c;
+  c={id:'c_'+uid(),name:name.trim().slice(0,24),icon:catIcon(name),color:PLAN_COLORS[db.cats.length%PLAN_COLORS.length],t:type};
+  db.cats.push(c);return c;
+}
 const acct=id=>db.accounts.find(a=>a.id===id);
 const banks=()=>db.settings.ccy==='PHP'?PH_ITEMS:(BANKS[db.settings.ccy]||BANKS.USD).map(b=>({...b,cat:b.type==='bank'?'savings':b.type==='credit'?'credit':'wallet',label:b.name}));
 
@@ -1145,7 +1180,7 @@ function renderHome(){
   $('#h-acount').textContent=db.accounts.length?`${db.accounts.length} account${db.accounts.length>1?'s':''}`:'';
   $('#h-accts').innerHTML=db.accounts.map(a=>{const b=acctBal(a.id);return`
     <button class="acard" style="--c:${esc(a.bg)}" onclick="openAD('${a.id}')">
-      <div class="tp">${logo(a,34)}<span class="ty">${esc(ATYPES[a.type]||a.type||'')}</span></div>
+      <div class="tp">${logo(a,34)}<span class="ty">${esc(typeLabel(a))}</span></div>
       <div><div class="nm">${esc(a.name)}</div><div class="bl ${b<0?'neg':''}">${isDebt(a.type)&&b<0?fm(b)+' <span style="font-size:11px;font-weight:700">owed</span>':(b<0?'−':'')+fm(b)}</div></div>
     </button>`;}).join('')+`<button class="acard add" onclick="openAcct()">${ic('plus')}Add</button>`;
 
@@ -1553,7 +1588,7 @@ function renderTxForm(){
   $('#tx-types').innerHTML=['expense','income','transfer'].map(k=>`<button class="${x.type===k?'on':''}" onclick="setTxType('${k}')">${cap(k)}</button>`).join('');
   $('#tx-sym').textContent=db.settings.sym;
   $('#tx-cat-fld').hidden=x.type==='transfer';
-  $('#tx-cats').innerHTML=CATS.filter(c=>c.t===x.type).map(c=>`<button class="cat ${x.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.tx.cat='${c.id}';renderTxForm()"><span class="ico">${ic(c.icon)}</span>${c.name}</button>`).join('');
+  $('#tx-cats').innerHTML=allCats(x.type).map(c=>`<button class="cat ${x.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.tx.cat='${c.id}';renderTxForm()"><span class="ico">${ic(c.icon)}</span>${esc(c.name)}</button>`).join('');
   $('#tx-from-lbl').textContent=x.type==='transfer'?'From':'Account';
   $('#tx-from').innerHTML=acctChips(x.aid,'pickFrom');
   $('#tx-to-fld').hidden=x.type!=='transfer';
@@ -1596,15 +1631,18 @@ function openAcct(id){
   $('#ac-title').textContent=a?'Edit account':'New account';
   $('#ac-banks-fld').hidden=!!a;
   $('#ac-name').value=a?a.name:'';
-  $('#ac-bal').value=a&&a.bal?(isDebt(a.type)?Math.abs(a.bal):a.bal):'';
+  $('#ac-label').value=a?.label||'';
+  const curBal=a?(a.type==='invest'?investCash(a.id):acctBal(a.id)):0;
+  $('#ac-bal').value=a?(Math.round((isDebt(a.type)?Math.abs(curBal):curBal)*100)/100||''):'';
   $('#ac-del').hidden=!a;
   $('#ac-save').textContent=a?'Save changes':'Add account';
   syncSym();renderAcctForm();openSheet('sh-acct');
 }
 function renderAcctForm(){
   const s=ui.ac;
+  $('#ac-label').placeholder=ATYPES[s.type]||'';
   if(!s.id){$('#ac-bcat').innerHTML=bankCats(s.cat,'acCat');$('#ac-banks').innerHTML=bankRows(s.cat,s.q,s.bank,'pickBank');}
-  $('#ac-bal-lbl').textContent=isDebt(s.type)?(s.id?'Starting amount owed':'Amount owed now'):s.type==='invest'?(s.id?'Starting cash':'Cash in this account'):(s.id?'Starting balance':'Current balance');
+  $('#ac-bal-lbl').textContent=isDebt(s.type)?'Amount owed now':s.type==='invest'?'Cash in this account now':'Current balance';
   $('#ac-types').innerHTML=Object.entries(ATYPES).map(([k,l])=>`<button class="chip txt ${s.type===k?'on':''}" onclick="ui.ac.type='${k}';renderAcctForm()">${l}</button>`).join('');
   const colors=ACOLORS.includes(s.color)?ACOLORS:[s.color,...ACOLORS];
   $('#ac-colors').innerHTML=colors.map(c=>`<button class="sw ${s.color===c?'on':''}" style="--c:${esc(c)}" onclick="ui.ac.color='${esc(c)}';ui.ac.fg='#fff';renderAcctForm()" aria-label="Color ${esc(c)}">${s.color===c?ic('check'):''}</button>`).join('');
@@ -1620,10 +1658,15 @@ function saveAcct(){
   if(!name)return toast('Enter an account name');
   let bal=Math.round(num($('#ac-bal').value)*100)/100;
   if(isDebt(s.type))bal=-Math.abs(bal); // money owed is stored as a negative balance
+  if(s.id){ // user typed today's balance → back out the effect of recorded transactions to get the starting balance
+    const a0=acct(s.id),now=a0.type==='invest'?investCash(s.id):acctBal(s.id);
+    bal=Math.round((bal-(now-(a0.bal||0)))*100)/100;
+  }
   const b=s.bank?banks().find(x=>x.id===s.bank):null;
   const abbr=b&&b.name===name?b.abbr:(s.abbr&&s.id&&acct(s.id)?.name===name?s.abbr:name.replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,3).toUpperCase()||name.slice(0,3).toUpperCase());
-  if(s.id){Object.assign(acct(s.id),{name,bg:s.color,fg:s.fg,type:s.type,bal,abbr});toast('Account updated');}
-  else{db.accounts.push({id:uid(),name,abbr,bg:s.color,fg:s.fg,type:s.type,bal});toast('Account added');}
+  const label=$('#ac-label').value.trim().slice(0,20);
+  if(s.id){Object.assign(acct(s.id),{name,bg:s.color,fg:s.fg,type:s.type,bal,abbr,label});toast('Account updated');}
+  else{db.accounts.push({id:uid(),name,abbr,bg:s.color,fg:s.fg,type:s.type,bal,label});toast('Account added');}
   save();closeSheets();
   if(s.id)openAD(s.id,true);
   refresh();
@@ -1646,7 +1689,7 @@ function renderAD(){
   const a=acct(ui.adId);if(!a){closeSheets();return;}
   const bal=acctBal(a.id);
   $('#sh-ad').style.setProperty('--c',a.bg);
-  $('#ad-hd').innerHTML=`${logo(a,48)}<div class="m"><div class="n">${esc(a.name)}</div><div class="ty">${esc(ATYPES[a.type]||a.type)} account</div></div>
+  $('#ad-hd').innerHTML=`${logo(a,48)}<div class="m"><div class="n">${esc(a.name)}</div><div class="ty">${esc(a.label?a.label:typeLabel(a)+' account')}</div></div>
     <button class="iconbtn" style="box-shadow:none" onclick="openAcct('${a.id}')" aria-label="Edit account">${ic('edit')}</button>
     <button class="iconbtn" style="box-shadow:none" onclick="closeSheets()" aria-label="Close">${ic('x')}</button>`;
   if(a.type==='invest'){
@@ -1742,7 +1785,7 @@ function openBudget(cid){
 }
 function renderBgtCats(){
   const cur=db.budgets[bkey(ui.bgtM)]||{};
-  $('#bg-cats').innerHTML=CATS.filter(c=>c.t==='expense').map(c=>`<button class="cat ${ui.bg.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.bg.cat='${c.id}';renderBgtCats()"><span class="ico">${ic(c.icon)}</span>${c.name}${cur[c.id]&&c.id!==ui.bg.orig?' ✓':''}</button>`).join('');
+  $('#bg-cats').innerHTML=allCats('expense').map(c=>`<button class="cat ${ui.bg.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.bg.cat='${c.id}';renderBgtCats()"><span class="ico">${ic(c.icon)}</span>${c.name}${cur[c.id]&&c.id!==ui.bg.orig?' ✓':''}</button>`).join('');
 }
 function saveBudget(){
   const c=ui.bg.cat,amt=Math.round(num($('#bg-amt').value)*100)/100;
@@ -1992,12 +2035,199 @@ function importData(input){
   const f=input.files[0];input.value='';if(!f)return;
   const r=new FileReader();
   r.onload=async()=>{
-    let p;try{p=JSON.parse(r.result);}catch(e){return toast('That file isn\'t a cove backup');}
-    if(!p||!Array.isArray(p.accounts)||!Array.isArray(p.txns))return toast('That file isn\'t a cove backup');
-    if(!await ask('Replace your data?',`Import ${p.accounts.length} accounts and ${p.txns.length} transactions. Your current data will be overwritten.`,'Import'))return;
-    db=normalize(p);save();closeSheets();go('home');toast('Backup restored');
+    const text=String(r.result||'').replace(/^﻿/,'');
+    if(/^\s*[\[{]/.test(text)){ // cove backup (.json)
+      let p;try{p=JSON.parse(text);}catch(e){return toast('That file couldn\'t be read');}
+      if(!p||!Array.isArray(p.accounts)||!Array.isArray(p.txns))return toast('That JSON file isn\'t a cove backup');
+      if(!await ask('Replace your data?',`Import ${p.accounts.length} accounts and ${p.txns.length} transactions. Your current data will be overwritten.`,'Import'))return;
+      db=normalize(p);save();closeSheets();go('home');toast('Backup restored');
+      return;
+    }
+    openCsvImport(text,f.name);
   };
+  r.onerror=()=>toast('That file couldn\'t be read');
   r.readAsText(f);
+}
+
+// ══════════════════════════════════
+// CSV IMPORT — map any app's / bank's CSV columns onto cove transactions
+// ══════════════════════════════════
+function parseCsv(text){
+  const first=text.split(/\r?\n/,1)[0]||'';
+  const delim=[',',';','\t','|'].map(d=>[d,first.split(d).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=c;}
+    else if(c==='"')q=true;
+    else if(c===delim){row.push(cell);cell='';}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';}
+    else cell+=c;
+  }
+  if(cell!==''||row.length){row.push(cell);rows.push(row);}
+  return rows.map(r=>r.map(x=>x.trim())).filter(r=>r.some(x=>x!==''));
+}
+const CSV_FIELDS=[
+  ['date','Date',/date|day|when/],
+  ['time','Time',/^time$|^hour/],
+  ['amount','Amount',/^(amount|amt|value|total|sum|php|₱|price)$|amount/],
+  ['out','Money out (debit)',/debit|withdraw|out(flow|going)?$|expense|spent|payment|money out/],
+  ['in','Money in (credit)',/credit|deposit|in(flow|coming)?$|income|received|money in/],
+  ['type','Type',/^type$|transaction type|kind|direction|flow/],
+  ['category','Category',/categor|group|class|tag/],
+  ['account','Account',/account|wallet|bank|source|from|card|payment method|method/],
+  ['to','To account (transfers)',/^to$|to account|destination|recipient account/],
+  ['note','Note',/note|desc|memo|detail|remark|payee|merchant|particular|narration|title|name/],
+];
+function guessCsvMap(head){
+  const map={},used=new Set(),h=head.map(x=>x.toLowerCase());
+  for(const[k,,re]of CSV_FIELDS){const i=h.findIndex((x,j)=>!used.has(j)&&re.test(x));if(i>=0){map[k]=i;used.add(i);}}
+  if(map.amount!=null&&(map.in!=null||map.out!=null)){delete map.in;delete map.out;} // prefer a single amount column
+  return map;
+}
+function csvNum(v){
+  let s=String(v??'').trim();if(!s)return null;
+  const neg=/^\(.*\)$/.test(s)||/^[-−–]/.test(s)||/-$/.test(s)||/\bDR\b/i.test(s);
+  s=s.replace(/[^0-9.,]/g,'');
+  if(/,\d{1,2}$/.test(s)&&!/\.\d/.test(s))s=s.replace(/\./g,'').replace(',','.'); // 1.234,56
+  else s=s.replace(/,/g,'');
+  const n=parseFloat(s);return isFinite(n)?(neg?-n:n):null;
+}
+function csvDate(v,dayFirst){
+  const s=String(v||'').trim();if(!s)return null;
+  let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m)return`${m[1]}-${pad(+m[2])}-${pad(+m[3])}`;
+  m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+  if(m){let a=+m[1],b=+m[2],y=+m[3];if(y<100)y+=2000;const[d,mo]=dayFirst?[a,b]:[b,a];if(mo<1||mo>12||d<1||d>31)return null;return`${y}-${pad(mo)}-${pad(d)}`;}
+  const t=Date.parse(s.replace(/(\d)(st|nd|rd|th)/,'$1'));
+  return isFinite(t)?isoDay(new Date(t)):null;
+}
+const CAT_SYN={food:/food|dining|restaurant|eat|meal|coffee|snack|cafe|jollibee|mcdo/,groceries:/grocer|supermarket|market|palengke/,transport:/transport|grab|taxi|fuel|gas|parking|toll|commute|car|jeep|mrt|lrt|angkas|joyride/,bills:/bill|utilit|electric|meralco|water|internet|phone|load|rent|subscription|netflix|spotify|insurance/,shopping:/shop|clothes|lazada|shopee|mall/,health:/health|medic|pharma|doctor|hospital|gym|drug/,fun:/fun|entertain|movie|game|travel|leisure|hobby/,education:/educat|school|tuition|book|course/,savings:/saving|invest/,salary:/salary|payroll|wage|sweldo/,freelance:/freelance|side|project|commission/,business:/business|sales|store/,returns:/interest|dividend|return|cashback/,gift:/gift|allowance|bonus|ayuda/};
+const CAT_ALIAS={'food and drinks':'food','food & drinks':'food','food & drink':'food','food and drink':'food','transportation':'transport','grocery':'groceries','utilities':'bills','utility':'bills','others':'other','other':'other','miscellaneous':'other','side hustle':'freelance','dividends':'returns','dividend':'returns'};
+// Category column → cove category: exact/alias match, else (if create) a custom category with the same name
+function resolveCat(text,type,create){
+  const t=String(text||'').trim(),k=t.toLowerCase();
+  if(!t)return type==='income'?'other_i':'other_e';
+  let id=CAT_ALIAS[k];if(id==='other')id=type==='income'?'other_i':'other_e';
+  const pool=allCats(type);
+  if(id&&pool.some(c=>c.id===id))return id;
+  const ex=pool.find(c=>c.name.toLowerCase()===k);if(ex)return ex.id;
+  return create?makeCustomCat(t,type).id:null;
+}
+function matchCat(text,type){
+  const t=String(text||'').toLowerCase().trim();
+  const pool=CATS.filter(c=>c.t===type);
+  const exact=pool.find(c=>c.name.toLowerCase()===t||c.id===t);if(exact)return exact.id;
+  for(const c of pool)if(CAT_SYN[c.id]&&CAT_SYN[c.id].test(t))return c.id;
+  return type==='income'?'other_i':'other_e';
+}
+let csv=null;
+function openCsvImport(text,name){
+  const rows=parseCsv(text);
+  if(rows.length<2)return toast('That CSV looks empty');
+  const head=rows[0],body=rows.slice(1);
+  // day-first if any slash date has a first part > 12
+  const map=guessCsvMap(head);
+  const dayFirst=map.date!=null&&body.some(r=>{const m=String(r[map.date]||'').match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.]/);return m&&+m[1]>12;});
+  csv={name,head,body,map,dayFirst,names:{},posIs:'auto',defAid:db.accounts.find(a=>a.type!=='invest')?.id||null};
+  renderCsv();openSheet('sh-csv');
+}
+function csvSel(k,v){csv.map[k]=v===''?undefined:+v;if(k==='amount'&&v!==''){delete csv.map.in;delete csv.map.out;}if((k==='in'||k==='out')&&v!=='')delete csv.map.amount;renderCsv();}
+function csvRows(){
+  const{body,map,dayFirst}=csv,out=[];let bad=0;
+  const g=(r,k)=>map[k]!=null?r[map[k]]:'';
+  // When a single signed amount column has no negatives, positives are probably expenses
+  const signed=map.amount!=null&&body.some(r=>(csvNum(r[map.amount])||0)<0);
+  for(const r of body){
+    const date=csvDate(g(r,'date'),dayFirst);
+    let amt=null,type=null;
+    const tv=String(g(r,'type')).toLowerCase();
+    if(map.amount!=null){
+      const n=csvNum(g(r,'amount'));if(n==null||n===0){bad++;continue;}
+      amt=Math.abs(n);
+      if(/transfer/.test(tv))type='transfer';
+      else if(/income|credit|deposit|\bin\b|receiv|inflow/.test(tv))type='income';
+      else if(/expense|debit|withdraw|\bout\b|spend|payment|outflow/.test(tv))type='expense';
+      else if(csv.posIs==='income')type=n<0?'expense':'income';
+      else if(csv.posIs==='expense')type=n<0?'income':'expense';
+      else type=signed?(n<0?'expense':'income'):'expense';
+    }else{
+      const o=csvNum(g(r,'out')),i=csvNum(g(r,'in'));
+      if(o){amt=Math.abs(o);type='expense';}else if(i){amt=Math.abs(i);type='income';}else{bad++;continue;}
+    }
+    if(!date){bad++;continue;}
+    const catText=g(r,'category'),note=String(g(r,'note')||'').slice(0,140);
+    const tm=String(g(r,'time')).match(/(\d{1,2}):(\d{2})/);
+    out.push({date,time:tm?`${pad(+tm[1])}:${tm[2]}`:null,amt:Math.round(amt*100)/100,type,acctName:String(g(r,'account')||'').trim(),toName:String(g(r,'to')||'').trim(),catText,note});
+  }
+  return{rows:out,bad};
+}
+function renderCsv(){
+  const{head,map}=csv,opts=i=>`<option value="">— none —</option>`+head.map((h,j)=>`<option value="${j}" ${map[i]===j?'selected':''}>${esc(h||'Column '+(j+1))}</option>`).join('');
+  const{rows,bad}=csvRows();
+  const inc=rows.filter(r=>r.type==='income'),exp=rows.filter(r=>r.type==='expense'),tr=rows.filter(r=>r.type==='transfer');
+  const names=[...new Set(rows.map(r=>r.acctName).concat(rows.map(r=>r.toName)).filter(Boolean))];
+  const newNames=names.filter(n=>!findAcctByName(n));
+  $('#csv-file').textContent=`${csv.name} · ${csv.body.length} rows`;
+  $('#csv-map').innerHTML=CSV_FIELDS.map(([k,l])=>`<div><label class="lbl">${l}${k==='date'?' *':''}</label><select class="in" onchange="csvSel('${k}',this.value)">${opts(k)}</select></div>`).join('');
+  $('#csv-opts').innerHTML=`
+    ${map.amount!=null&&map.type==null?`<div class="fld"><span class="lbl">Amounts without a minus sign are</span><div class="seg">${[['auto','Auto'],['expense','Expenses'],['income','Income']].map(([k,l])=>`<button class="${csv.posIs===k?'on':''}" onclick="csv.posIs='${k}';renderCsv()">${l}</button>`).join('')}</div></div>`:''}
+    <div class="fld"><span class="lbl">Date format</span><div class="seg">${[[false,'Month/Day'],[true,'Day/Month']].map(([v,l])=>`<button class="${csv.dayFirst===v?'on':''}" onclick="csv.dayFirst=${v};renderCsv()">${l}</button>`).join('')}</div></div>
+    ${map.account==null||rows.some(r=>!r.acctName)?`<div class="fld"><span class="lbl">${map.account==null?'Put everything in':'Rows without an account go to'}</span><div class="chips">${db.accounts.filter(a=>a.type!=='invest').map(a=>`<button class="chip ${csv.defAid===a.id?'on':''}" onclick="csv.defAid='${a.id}';renderCsv()">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div></span></button>`).join('')}<button class="chip txt ${!csv.defAid?'on':''}" onclick="csv.defAid=null;renderCsv()">+ New "Imported" account</button></div></div>`:''}`;
+  const catOf=r=>{if(r.type==='transfer')return TRANSFER;if(map.category==null)return cat(matchCat(r.note,r.type));const id=resolveCat(r.catText,r.type,false);return id?cat(id):{name:r.catText,icon:catIcon(r.catText),color:'#94A3B8'};};
+  const newCats=map.category==null?[]:[...new Set(rows.filter(r=>r.type!=='transfer'&&!resolveCat(r.catText,r.type,false)).map(r=>r.catText.trim()))];
+  const sample=rows.slice(0,5).map(r=>{const c=catOf(r);
+    return`<div class="trd"><span class="ico" style="--c:${c.color};width:34px;height:34px">${ic(c.icon)}</span><span class="m"><div class="t">${esc(r.note||c.name)}</div><div class="s">${esc(c.name)} · ${esc(r.acctName||'')}${r.acctName?' · ':''}${dayLabel(r.date)}</div></span><span class="a ${r.type==='income'?'pos':''}">${r.type==='income'?'+':r.type==='expense'?'−':''}${fm(r.amt)}</span></div>`;}).join('');
+  $('#csv-prev').innerHTML=rows.length?`<div class="list" style="box-shadow:none">${sample}</div>`:'<div class="qprev">No rows can be read yet — set the Date and Amount columns above.</div>';
+  $('#csv-sum').innerHTML=rows.length?`<b>${rows.length}</b> transactions: ${inc.length} income (${fm(inc.reduce((a,r)=>a+r.amt,0))}), ${exp.length} expenses (${fm(exp.reduce((a,r)=>a+r.amt,0))})${tr.length?`, ${tr.length} transfers`:''}.${bad?` <span class="neg">${bad} rows skipped (missing date or amount).</span>`:''}${newCats.length?`<br>${newCats.length} of your categories will be added to cove: ${newCats.map(esc).join(', ')}.`:''}`:'';
+  const box=$('#csv-accts');
+  if(newNames.length&&!box.contains(document.activeElement))box.innerHTML=`<div class="sec" style="margin-top:20px"><h2>New accounts</h2></div><div class="mut" style="font-size:12.5px;margin:-4px 2px 8px">Rename them now if you like — e.g. call BanKo "Emergency Fund".</div>`+newNames.map(n=>{const c=catalogFor(n),a=c||{abbr:n.slice(0,3).toUpperCase(),bg:ACOLORS[2],fg:'#fff'};
+    return`<div class="trd" style="padding:8px 0;gap:10px">${logo(a,34)}<input class="in" style="height:42px" value="${esc(csv.names[n]??acctPreviewName(n))}" oninput="csv.names[${esc(JSON.stringify(n))}]=this.value" aria-label="Name for ${esc(n)}"><span class="mut" style="font-size:11.5px;white-space:nowrap">${esc(n)}</span></div>`;}).join('');
+  else if(!newNames.length)box.innerHTML='';
+  $('#csv-go').disabled=!rows.length||map.date==null;
+  $('#csv-go').textContent=rows.length?`Import ${rows.length} transactions`:'Import';
+}
+const normName=n=>String(n||'').toLowerCase().replace(/[–—-]/g,' ').replace(/\s+/g,' ').trim();
+const catalogFor=n=>banks().find(b=>normName(b.label)===normName(n)||normName(b.name)===normName(n));
+function acctPreviewName(n){return catalogFor(n)?.name||n;}
+function findAcctByName(n){
+  const k=normName(n);if(!k)return null;
+  const c=catalogFor(n),alt=c?normName(c.name):null;
+  return db.accounts.find(a=>normName(a.name)===k||(alt&&normName(a.name)===alt)||(a.aliases||[]).some(x=>normName(x)===k));
+}
+function acctForName(n){
+  let a=findAcctByName(n);if(a)return a;
+  const c=catalogFor(n);
+  const nm=(csv&&csv.names[n]||'').trim();
+  if(c){a={id:uid(),name:nm||c.name,abbr:c.abbr,bg:c.bg,fg:c.fg,type:c.type,bal:0,aliases:[n]};db.accounts.push(a);return a;}
+  const k=n.toLowerCase(),b=banks().filter(x=>k.includes(x.name.toLowerCase().split(' ')[0])).sort((x,y)=>y.name.length-x.name.length)[0];
+  const type=/credit|card/.test(k)?'credit':/loan/.test(k)?'loan':/cash/.test(k)?'cash':b?.type||'bank';
+  a={id:uid(),aliases:[n],name:(nm||n).slice(0,40),abbr:b?.abbr||n.replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,3).toUpperCase()||'ACC',bg:b?.bg||ACOLORS[2],fg:b?.fg||'#fff',type,bal:0};
+  db.accounts.push(a);return a;
+}
+async function runCsvImport(){
+  const{rows}=csvRows();if(!rows.length)return;
+  let def=csv.defAid&&acct(csv.defAid);
+  const key=t=>[t.date,t.time||'',t.amt,t.type,t.aid,(t.note||'').toLowerCase()].join('|');
+  const seen=new Set(db.txns.map(key));
+  let added=0,dup=0,ts=Date.now();
+  const made={},acctFor=n=>made[n]||(made[n]=acctForName(n)); // same file name → same account, even after a rename
+  for(const r of rows){
+    let a=r.acctName?acctFor(r.acctName):(def||(def=acctForName('Imported')));
+    const rec={amt:r.amt,type:r.type,aid:a.id,tid:null,date:r.date,note:r.note};
+    if(r.time)rec.time=r.time;
+    if(r.type==='transfer'){
+      const to=r.toName?acctFor(r.toName):null;
+      if(to&&to.id!==a.id){rec.tid=to.id;rec.cid='other_e';}else{rec.type='expense';}
+    }
+    if(rec.type!=='transfer')rec.cid=csv.map.category!=null?resolveCat(r.catText,rec.type,true):matchCat(r.note,rec.type);
+    if(seen.has(key(rec))){dup++;continue;}
+    const t0=r.time?Date.parse(`${r.date}T${r.time}:00`):NaN;
+    seen.add(key(rec));db.txns.push({id:uid(),...rec,ts:isFinite(t0)?t0+(added%1000):ts++});added++;
+  }
+  db.settings.onboarded=true;save();closeSheets();go('home');
+  toast(`Imported ${added} transaction${added===1?'':'s'}${dup?` · ${dup} duplicate${dup===1?'':'s'} skipped`:''}`);
+  setTimeout(()=>ask('Set your account balances','Your file has transactions but not your starting balances, so account totals may be off. Tap each account → pencil icon → type its balance today, and cove will work out the rest.','Got it','Later',false),900);
 }
 async function clearAll(){
   if(!await ask('Erase everything?','All accounts, transactions, budgets and your plan will be deleted from your account on every device.','Erase'))return;
