@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>cove · Privacy Policy</title>
+<meta name="description" content="How cove by APX Labs collects, uses, stores and deletes your data.">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F5F7;--surf:#FFFFFF;--s2:#EEF0F3;--line:rgba(14,17,22,.08);--text:#0E1116;--muted:#5F6672;--acc:#3A74E0;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0A0B0D;--surf:#131519;--s2:#1B1E23;--line:rgba(255,255,255,.07);--text:#ECEEF2;--muted:#8E949E;--acc:#7FB3FF;color-scheme:dark}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 28px) 20px 64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.04em;color:var(--text);text-decoration:none}
+.brand svg{width:30px;height:30px}
+h1{font-size:34px;letter-spacing:-.045em;line-height:1.1;margin:28px 0 6px}
+.meta{color:var(--muted);font-size:14px;font-weight:600}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:20px 22px;margin-top:22px}
+.card p+p{margin-top:10px}
+h2{font-size:19px;letter-spacing:-.025em;margin:34px 0 10px}
+p,li{font-size:15.5px}
+ul{padding-left:20px;margin-top:8px}
+li{margin:6px 0}
+li::marker{color:var(--muted)}
+a{color:var(--acc)}
+b{font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14.5px}
+th,td{text-align:left;padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-top:0}
+.tablewrap{overflow-x:auto;background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:6px 10px;margin-top:12px}
+.foot{margin-top:44px;color:var(--muted);font-size:13.5px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" fill="#3A74E0"/><path d="M7 13.5c3-3 6-3 9 0s6 3 9 0M7 20.5c3-3 6-3 9 0s6 3 9 0" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>cove</a>
+  <h1>Privacy Policy</h1>
+  <div class="meta">Effective October 3, 2026 · cove by APX Labs</div>
+
+  <div class="card">
+    <p><b>The short version:</b> cove is a personal budgeting app. You type in your own accounts, transactions, budgets, plans and stock holdings. We store that data only so cove can show it to you on your devices. We don't sell it, we don't show ads, we don't track you across other apps or websites, and we never connect to your bank, e-wallet or brokerage.</p>
+    <p>You can export your data or permanently delete your account at any time from <b>Settings</b> in the app.</p>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>cove is made by APX Labs ("we", "us"). If you have questions about this policy or your data, contact us at <a href="mailto:apx.gst@gmail.com">apx.gst@gmail.com</a>.</p>
+
+  <h2>What we collect</h2>
+  <ul>
+    <li><b>Account information:</b> your email address and a password. The password is stored only as a secure hash by our authentication provider; we can't see it.</li>
+    <li><b>Financial information you enter:</b> account names, balances, currencies, transactions (amounts, dates, notes, categories, fees), budgets, your allocation plan, and stock holdings and trades you record. cove does not log in to or read from your bank, e-wallet or brokerage, and never asks for card numbers or banking passwords.</li>
+    <li><b>Files you import:</b> if you import a CSV or backup file, its contents are read on your device and only the resulting transactions and accounts are saved to your cove data.</li>
+    <li><b>App preferences:</b> such as your chosen currency and light/dark theme.</li>
+  </ul>
+  <p style="margin-top:10px">We do <b>not</b> collect your location, contacts, photos, device identifiers for advertising, or browsing history, and we don't use analytics or advertising trackers.</p>
+
+  <h2>How we use it</h2>
+  <ul>
+    <li>To sign you in and keep your data in sync across your devices.</li>
+    <li>To calculate your balances, budgets, insights and plan.</li>
+    <li>To show live US stock prices and exchange rates (see below).</li>
+    <li>To respond if you contact us for support.</li>
+  </ul>
+  <p style="margin-top:10px">We don't use your data for advertising, and we don't sell or rent it to anyone.</p>
+
+  <h2>Where your data is stored</h2>
+  <p>Your data is stored with <b>Supabase</b>, our database and sign-in provider, on servers in Singapore. It is sent over encrypted connections (HTTPS) and protected by access rules so that each account can only read and change its own data. A copy is also kept on your device so cove works offline.</p>
+
+  <h2>Services we use</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Service</th><th>Why</th><th>What it receives</th></tr>
+    <tr><td>Supabase</td><td>Sign-in and storing your cove data</td><td>Your email, password hash and the data you enter</td></tr>
+    <tr><td>GitHub Pages</td><td>Hosting the app's website files</td><td>Standard web requests (e.g. IP address) when the app loads</td></tr>
+    <tr><td>Finnhub</td><td>Live US stock prices</td><td>Only stock ticker symbols (e.g. "AAPL") — no personal data</td></tr>
+    <tr><td>ExchangeRate-API (open.er-api.com)</td><td>Currency exchange rates</td><td>A request for today's rates — no personal data</td></tr>
+    <tr><td>Google Fonts, jsDelivr</td><td>Loading the app's font and code library</td><td>Standard web requests (e.g. IP address)</td></tr>
+  </table></div>
+  <p style="margin-top:10px">These providers process data only to provide their service and under their own privacy terms.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep your data for as long as you have a cove account. When you delete your account, your login and all your cove data are removed from our database immediately. Routine backups held by our hosting provider are overwritten on their normal schedule.</p>
+
+  <h2>Your choices and rights</h2>
+  <ul>
+    <li><b>See and correct:</b> everything we store is visible and editable in the app.</li>
+    <li><b>Export:</b> Settings → Export downloads a complete copy of your data.</li>
+    <li><b>Erase data:</b> Settings → Erase all data clears your records but keeps your login.</li>
+    <li><b>Delete your account:</b> Settings → Delete account permanently deletes your login and all your data. You can also email us to request deletion.</li>
+  </ul>
+  <p style="margin-top:10px">Depending on where you live (for example under the Philippine Data Privacy Act, GDPR or similar laws), you may have additional rights, such as to object to processing or to complain to your data protection authority. Contact us and we'll help.</p>
+
+  <h2>Children</h2>
+  <p>cove is not directed to children under 13, and we don't knowingly collect data from them. If you believe a child has created an account, contact us and we'll delete it.</p>
+
+  <h2>Not financial advice</h2>
+  <p>cove helps you record and organize your own finances. Stock prices and exchange rates are provided for information and may be delayed or inaccurate. Nothing in cove is financial, investment or tax advice.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If we make significant changes, we'll update the date above and let you know in the app.</p>
+
+  <h2>Contact</h2>
+  <p>APX Labs · <a href="mailto:apx.gst@gmail.com">apx.gst@gmail.com</a></p>
+
+  <p class="foot"><a href="./">← Back to cove</a></p>
+</main>
+</body>
+</html>
