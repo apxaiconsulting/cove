@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>cove</title>
 <meta name="description" content="Personal budgeting and allocation planner">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -50,7 +50,9 @@ document.documentElement.dataset.theme=d?'dark':'light';})();
 :root[data-theme=dark] .dlg .box{background:var(--s2)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html{background:var(--bg)}
+html{background:var(--bg);touch-action:manipulation;-webkit-text-size-adjust:100%}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100dvh;font-variant-numeric:tabular-nums;overflow-x:hidden}
 body.locked{overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
@@ -275,6 +277,9 @@ body.locked .histbar{display:none}
 /* ── Charts ── */
 .legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:0}
 .lg{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+button.lg{width:100%;text-align:left;padding:3px 0;border-radius:8px}
+button.lg:active{background:var(--s2)}
+.bud .row>svg.i{width:16px;height:16px;color:var(--faint)}
 .lg i{width:8px;height:8px;border-radius:3px;background:var(--c);flex-shrink:0}
 .lg span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lg b{font-weight:800;letter-spacing:-.02em;white-space:nowrap;flex-shrink:0}
@@ -356,7 +361,7 @@ svg text{font-family:var(--font)}
 /* ── Forms ── */
 .fld{margin-top:18px}
 .lbl{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:8px}
-.in{width:100%;height:50px;border-radius:14px;border:1.5px solid transparent;background:var(--s2);padding:0 14px;font-size:15px;outline:none;transition:border-color .15s,background .15s}
+.in{width:100%;height:50px;border-radius:14px;border:1.5px solid transparent;background:var(--s2);padding:0 14px;font-size:16px;outline:none;transition:border-color .15s,background .15s}
 .in:focus{border-color:var(--acc);background:var(--surf)}
 select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .money{position:relative}
@@ -449,7 +454,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .bigmoney span{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:24px;font-weight:800;color:var(--faint)}
 .bigmoney input{height:72px;font-size:30px;font-weight:800;letter-spacing:-.04em;padding-left:46px}
 .hint{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--s2);color:var(--muted);font-size:13px;font-weight:600}
-.prow{display:grid;grid-template-columns:minmax(0,1fr) 96px 58px 36px;gap:6px;margin-bottom:8px;align-items:center}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 96px 66px 36px;gap:6px;margin-bottom:8px;align-items:center}
 .prow .in{height:44px;padding:0 11px;font-size:14px;border-radius:12px}
 .prow select.in{text-align:center;padding:0 6px;font-weight:700}
 .prow .x{width:36px;height:36px}
@@ -664,6 +669,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <div class="chips wrap" id="tx-tcurs" style="margin-top:8px"></div>
     <div id="tx-tamt-fld" style="margin-top:12px"><label class="lbl" for="tx-tamt" id="tx-tamt-lbl">They receive</label><div class="money"><span id="tx-tsym"></span><input class="in" id="tx-tamt" inputmode="decimal" autocomplete="off" oninput="ui.tx.tamtTouched=true"></div><div class="tog-hint" id="tx-rate"></div></div>
   </div>
+  <div class="fld"><label class="lbl" for="tx-fee">Fee <span style="font-weight:500">(optional — bank, transfer or ATM fee)</span></label><div class="money"><span id="tx-fee-sym"></span><input class="in" id="tx-fee" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="txFeeHint()"></div><div class="tog-hint" id="tx-fee-hint"></div></div>
   <div class="two fld">
     <div><label class="lbl" for="tx-date">Date</label><input class="in" type="date" id="tx-date"></div>
     <div><label class="lbl" for="tx-note">Note</label><input class="in" id="tx-note" placeholder="Optional" autocomplete="off"></div>
@@ -747,6 +753,9 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
   <div class="fld"><label class="lbl" for="pk-bal">Current balance</label><div class="money"><span id="pk-sym"></span><input class="in" id="pk-bal" inputmode="decimal" placeholder="0.00" autocomplete="off"></div></div>
   <button class="btn" style="margin-top:22px" onclick="savePocket()">Add currency</button>
 </div>
+
+<!-- Category transactions (from Insights) -->
+<div class="sheet" id="sh-cattx" role="dialog" aria-modal="true"><div class="grab"></div><div id="ct-body"></div></div>
 
 <!-- Budget -->
 <div class="sheet" id="sh-bgt" role="dialog" aria-modal="true" aria-labelledby="bg-title">
@@ -978,6 +987,7 @@ const CATS=[
   {id:'fun',name:'Fun',icon:'film',color:'#F59E0B',t:'expense'},
   {id:'education',name:'Education',icon:'book',color:'#06B6D4',t:'expense'},
   {id:'savings',name:'Savings',icon:'coins',color:'#10B981',t:'expense'},
+  {id:'fees',name:'Fees',icon:'card',color:'#64748B',t:'expense'},
   {id:'other_e',name:'Other',icon:'more',color:'#94A3B8',t:'expense'},
   {id:'salary',name:'Salary',icon:'briefcase',color:'#10B981',t:'income'},
   {id:'freelance',name:'Freelance',icon:'laptop',color:'#3B82F6',t:'income'},
@@ -992,7 +1002,7 @@ const ATYPES={ewallet:'Wallet',bank:'Savings',cash:'Cash',credit:'Credit',loan:'
 const isDebt=t=>t==='credit'||t==='loan';
 const typeLabel=a=>a.label||ATYPES[a.type]||a.type||'';
 const PLAN_COLORS=['#5B8DEF','#10B981','#F59E0B','#8B5CF6','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4','#84CC16'];
-const FIXED='Fixed Amount', PCT='Percentage';
+const FIXED='Fixed Amount', PCT='Percentage', REST='Rest';
 
 // ══════════════════════════════════
 // CLOUD  (Supabase — the publishable key is public by design; row-level security protects data)
@@ -1053,6 +1063,31 @@ const hasData=d=>!!d&&((d.accounts||[]).length>0||(d.txns||[]).length>0||(d.stoc
 // HELPERS
 // ══════════════════════════════════
 const $=s=>document.querySelector(s);
+// Block pinch / double-tap zoom (iOS ignores user-scalable=no) and long-press selection outside fields
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<300&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.preventDefault();lastTap=n;},{passive:false});
+document.addEventListener('contextmenu',e=>{if(!/INPUT|TEXTAREA/.test(e.target.tagName))e.preventDefault();});
+document.addEventListener('selectstart',e=>{if(!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.preventDefault();});
+
+// ── Thousands separators while typing in amount fields (inputmode="decimal") ──
+function groupDigits(raw){
+  let v=String(raw).replace(/[^0-9.]/g,'');const dot=v.indexOf('.');
+  if(dot>=0)v=v.slice(0,dot+1)+v.slice(dot+1).replace(/\./g,'');
+  let[i,d]=v.split('.');i=(i||'').replace(/^0+(?=\d)/,'');
+  const g=i.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return d!==undefined?(g||'0')+'.'+d:g;
+}
+function fmtMoneyInput(el){
+  if(!el||el.inputMode!=='decimal'||!el.value)return;
+  const pos=el.selectionStart??el.value.length,before=el.value.slice(0,pos).replace(/[^0-9.]/g,'').length;
+  const out=groupDigits(el.value);if(out===el.value)return;
+  el.value=out;
+  let k=0,p=0;while(p<out.length&&k<before){if(/[0-9.]/.test(out[p]))k++;p++;}
+  try{if(document.activeElement===el)el.setSelectionRange(p,p);}catch(_){}
+}
+document.addEventListener('input',e=>fmtMoneyInput(e.target),true);   // capture: runs before the field's own handlers
+function fmtMoneyInputs(root){(root||document).querySelectorAll('input[inputmode="decimal"]').forEach(fmtMoneyInput);}
 const $$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -1127,7 +1162,8 @@ const fmc=(v,cur)=>!cur||cur===disp()?fm(v):money(Math.abs(v),cur);   // like fm
 const txCur=t=>t.cur||acctCur(acct(t.aid));
 const txTCur=t=>t.tcur||acctCur(acct(t.tid));
 const txTAmt=t=>t.tamt!=null?t.tamt:(txCur(t)===txTCur(t)?t.amt:r2(conv(t.amt,txCur(t),txTCur(t))??t.amt));
-const amtD=t=>{const v=toD(t.amt,txCur(t));return v==null?t.amt:r2(v);};                                 // amount in the app currency
+const amtD=t=>{const v=toD(t.amt,txCur(t));return v==null?t.amt:r2(v);};
+const feeD=t=>{if(!t.fee)return 0;const v=toD(t.fee,txCur(t));return v==null?t.fee:r2(v);};                                 // amount in the app currency
 
 // ── Computed ──
 // Balance of one currency pocket of an account, in that currency
@@ -1136,7 +1172,7 @@ function balIn(a,cur){
   const c=v=>Math.round((+v||0)*100);
   let b=c(cur===prim?(a.bal||0):((a.pockets||[]).find(p=>p.ccy===cur)?.bal||0));
   for(const t of db.txns){
-    if(t.aid===a.id&&txCur(t)===cur){if(t.type==='income')b+=c(t.amt);else b-=c(t.amt);}
+    if(t.aid===a.id&&txCur(t)===cur){if(t.type==='income')b+=c(t.amt);else b-=c(t.amt);if(t.fee)b-=c(t.fee);}
     if(t.type==='transfer'&&t.tid===a.id&&txTCur(t)===cur)b+=c(txTAmt(t));
   }
   if(a.type==='invest'&&cur===prim){const p=investParts(a.id);b+=c(p.stocks)+c(p.tradeCash);}
@@ -1180,7 +1216,7 @@ function inPeriod(ds,period,d=new Date()){
 }
 function flow(period,d=new Date()){
   let inc=0,exp=0;
-  for(const t of db.txns){if(!inPeriod(t.date,period,d))continue;if(t.type==='income')inc+=Math.round(amtD(t)*100);else if(t.type==='expense')exp+=Math.round(amtD(t)*100);}
+  for(const t of db.txns){if(!inPeriod(t.date,period,d))continue;if(t.type==='income')inc+=Math.round(amtD(t)*100);else if(t.type==='expense')exp+=Math.round(amtD(t)*100);exp+=Math.round(feeD(t)*100);}
   return{inc:inc/100,exp:exp/100,net:(inc-exp)/100};
 }
 function catSpend(d){return catSpendP('month',d);}
@@ -1212,6 +1248,7 @@ function render(){({home:renderHome,txns:renderTxns,budget:renderBudget,insights
 function refresh(){render();if($('#sh-ad').classList.contains('open'))renderAD();}
 
 function openSheet(id){
+  setTimeout(()=>fmtMoneyInputs($('#'+id)),0);
   $$('.sheet.open').forEach(s=>s.classList.remove('open'));
   $('#'+id).classList.add('open');$('#'+id).scrollTop=0;
   $('#backdrop').classList.add('on');document.body.classList.add('locked');
@@ -1321,7 +1358,7 @@ function renderHome(){
 
 function renderSpark(tot){
   const N=30,eff={};
-  for(const t of db.txns){if(t.type==='transfer')continue;eff[t.date]=(eff[t.date]||0)+(t.type==='income'?amtD(t):-amtD(t));}
+  for(const t of db.txns){if(t.type==='transfer'){if(t.fee)eff[t.date]=(eff[t.date]||0)-feeD(t);continue;}eff[t.date]=(eff[t.date]||0)+(t.type==='income'?amtD(t):-amtD(t))-feeD(t);}
   // drop future-dated effects so "today" equals the true running balance
   const today=isoDay(new Date());let b=tot;
   for(const k in eff)if(k>today)b-=eff[k];
@@ -1643,12 +1680,13 @@ function emptyHTML(icon,title,sub,btn=''){
 function txRow(t){
   const tr=t.type==='transfer',c=tr?TRANSFER:cat(t.cid),a=acct(t.aid),to=tr?acct(t.tid):null;
   const title=t.note?esc(t.note):esc(c.name);
+  const feeTxt=t.fee?` · ${fmc(t.fee,txCur(t))} fee`:'';
   const sub=(t.note&&!tr?esc(c.name)+' · ':'')+(tr&&t.aid===t.tid?esc(a?.name||'')+' '+txCur(t)+' → '+txTCur(t):esc(a?.name||'Deleted account')+(tr?' → '+esc(to?.name||'Deleted account')+(txCur(t)!==txTCur(t)?' · '+money(txTAmt(t),txTCur(t)):''):''));
   const cls=t.type==='income'?'pos':t.type==='expense'?'':'acc';
   const sign=t.type==='income'?'+':t.type==='expense'?'−':'';
   return`<button class="tx" onclick="openTxn('${t.id}')">
     <span class="ico" style="--c:${c.color}">${ic(c.icon)}</span>
-    <span class="m"><div class="t">${title}</div><div class="s">${sub}</div></span>
+    <span class="m"><div class="t">${title}</div><div class="s">${sub}${feeTxt}</div></span>
     <span class="r"><div class="a ${cls}">${sign}${fmc(t.amt,txCur(t))}</div><div class="d">${dayLabel(t.date)}</div></span>
   </button>`;
 }
@@ -1656,7 +1694,7 @@ function txRow(t){
 function groupedList(txns){
   const groups={};for(const t of txns)(groups[t.date]=groups[t.date]||[]).push(t);
   return Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(d=>{
-    const net=sumC(groups[d].map(t=>t.type==='income'?amtD(t):t.type==='expense'?-amtD(t):0));
+    const net=sumC(groups[d].map(t=>(t.type==='income'?amtD(t):t.type==='expense'?-amtD(t):0)-feeD(t)));
     return`<div class="dayhd"><span>${dayLabel(d)}</span><span class="${net>0?'pos':net<0?'neg':''}">${net?fms(net):''}</span></div><div class="list">${groups[d].map(txRow).join('')}</div>`;
   }).join('');
 }
@@ -1688,6 +1726,7 @@ function openTxn(id,preset={}){
   $('#tx-amt').value=t?t.amt:(preset.amt?Math.round(preset.amt*100)/100:'');
   $('#tx-date').value=t?t.date:isoDay(new Date());
   $('#tx-note').value=t?(t.note||''):(preset.note||'');
+  $('#tx-fee').value=t&&t.fee?t.fee:'';
   $('#tx-del').hidden=!t;
   $('#tx-save').textContent=t?'Save changes':'Add transaction';
   renderTxForm();openSheet('sh-txn');
@@ -1707,7 +1746,7 @@ function renderTxForm(){
   $('#tx-types').innerHTML=['expense','income','transfer'].map(k=>`<button class="${x.type===k?'on':''}" onclick="setTxType('${k}')">${cap(k)}</button>`).join('');
   const fa=acct(x.aid),fcs=acctCurs(fa);
   if(!fcs.includes(x.cur))x.cur=fcs[0];
-  $('#tx-sym').textContent=curSym(x.cur);
+  $('#tx-sym').textContent=curSym(x.cur);$('#tx-fee-sym').textContent=curSym(x.cur);txFeeHint();
   $('#tx-curs').innerHTML=fcs.length>1?fcs.map(c=>`<button class="chip txt ${x.cur===c?'on':''}" onclick="ui.tx.cur='${c}';ui.tx.tamtTouched=false;renderTxForm()">${c} <span class="mut" style="font-weight:600">${fmc(balIn(fa,c),c)}</span></button>`).join(''):'';
   $('#tx-cat-fld').hidden=x.type==='transfer';
   $('#tx-cats').innerHTML=allCats(x.type).map(c=>`<button class="cat ${x.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.tx.cat='${c.id}';renderTxForm()"><span class="ico">${ic(c.icon)}</span>${esc(c.name)}</button>`).join('');
@@ -1723,7 +1762,14 @@ function renderTxForm(){
   }else $('#tx-tamt-fld').hidden=true;
 }
 // Cross-currency transfer: show "they receive" pre-filled at today's rate (editable)
+function txFeeHint(){
+  const x=ui.tx,amt=num($('#tx-amt').value),fee=num($('#tx-fee').value),h=$('#tx-fee-hint'),a=acct(x.aid);
+  if(!(fee>0)){h.textContent='';return;}
+  const m=v=>fmc(r2(v),x.cur),nm=a?a.name:'the account';
+  h.textContent=x.type==='income'?`Fee is deducted — ${m(amt-fee)} lands in ${nm}.`:x.type==='expense'?`Total out of ${nm}: ${m(amt+fee)} (${m(amt)} + ${m(fee)} fee).`:`${nm} pays the fee — ${m(amt+fee)} leaves ${nm} in total.`;
+}
 function txAmtInput(){
+  txFeeHint();
   const x=ui.tx;if(x.type!=='transfer'){$('#tx-tamt-fld').hidden=true;return;}
   const cross=x.tcur&&x.tcur!==x.cur;$('#tx-tamt-fld').hidden=!cross;if(!cross)return;
   $('#tx-tamt-lbl').textContent=`${acct(x.tid)?.name||'They'} receive${acct(x.tid)?.name?'s':''} (${x.tcur})`;
@@ -1745,7 +1791,7 @@ function saveTxn(){
   if(cross&&!(tamt>0))return toast('Enter how much arrived');
   const date=$('#tx-date').value||isoDay(new Date());
   const rec={amt,type:x.type,cid:x.type==='transfer'?'other_e':x.cat,aid:x.aid,tid:x.type==='transfer'?x.tid:null,date,note:$('#tx-note').value.trim(),
-    cur:x.cur,tcur:x.type==='transfer'?x.tcur:undefined,tamt};
+    cur:x.cur,tcur:x.type==='transfer'?x.tcur:undefined,tamt,fee:r2(num($('#tx-fee').value))||undefined};
   if(x.id){Object.assign(db.txns.find(t=>t.id===x.id),rec);toast('Saved');}
   else{db.txns.push({id:uid(),...rec,ts:Date.now()});toast(`${x.type==='income'?'+':x.type==='expense'?'−':''}${fmc(amt,x.cur)} added`);}
   save();buzz();
@@ -2010,7 +2056,7 @@ async function delBudget(){
 // ══════════════════════════════════
 // INSIGHTS
 // ══════════════════════════════════
-function catSpendP(p,d){const r={};for(const t of db.txns)if(t.type==='expense'&&inPeriod(t.date,p,d))r[t.cid]=(r[t.cid]||0)+Math.round(amtD(t)*100);for(const k in r)r[k]/=100;return r;}
+function catSpendP(p,d){const r={};for(const t of db.txns){if(!inPeriod(t.date,p,d))continue;if(t.type==='expense')r[t.cid]=(r[t.cid]||0)+Math.round(amtD(t)*100);if(t.fee)r.fees=(r.fees||0)+Math.round(feeD(t)*100);}for(const k in r)r[k]/=100;return r;}
 ui.ins={p:'month',d:new Date()};
 function insShift(n){
   const{p,d}=ui.ins,x=new Date(d);
@@ -2044,6 +2090,19 @@ function insBuckets(p,d){
   }
   return B;
 }
+// Transactions behind one Insights category for the selected period (fees: transactions that carried a fee)
+function catTxns(id,p,d){return db.txns.filter(t=>inPeriod(t.date,p,d)&&(id==='fees'?t.fee>0:t.type==='expense'&&t.cid===id));}
+function openCatTx(id){
+  const{p,d}=ui.ins,c=cat(id),list=sortTx(catTxns(id,p,d));
+  const total=sumC(list.map(t=>id==='fees'?feeD(t):amtD(t)));
+  $('#ct-body').innerHTML=`<div class="shd" style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;min-width:0"><span class="ico" style="--c:${c.color};width:44px;height:44px">${ic(c.icon)}</span>
+      <div style="min-width:0"><h3>${esc(c.name)}</h3><div class="mut" style="font-size:13px;font-weight:600">${esc(insLabel(p,d))}</div></div></div>
+      <button class="iconbtn" onclick="closeSheets()" aria-label="Close">${ic('x')}</button></div>
+    <div class="adbal" style="--c:${c.color}"><div class="k">${id==='fees'?'Fees paid':'Spent'}</div><div class="v">${fm(total)}</div>
+      <div class="k" style="margin-top:2px">${list.length} transaction${list.length===1?'':'s'}${list.length?` · average ${fm(sumC(list.map(t=>id==='fees'?feeD(t):amtD(t)))/list.length)}`:''}</div></div>
+    <div style="margin-top:8px">${list.length?groupedList(list):'<div class="empty">No transactions.</div>'}</div>`;
+  openSheet('sh-cattx');
+}
 function renderInsights(){
   const{p,d}=ui.ins,now=new Date();
   $('#i-month').textContent=insLabel(p,d);
@@ -2056,7 +2115,7 @@ function renderInsights(){
   const atEnd=p==='all'||(p==='day'?isoDay(d)===isoDay(now):p==='month'?d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth():d.getFullYear()===now.getFullYear());
 
   const sp=catSpendP(p,d);
-  const items=Object.entries(sp).map(([id,v])=>({...cat(id),v})).sort((a,b)=>b.v-a.v);
+  const items=Object.entries(sp).map(([id,v])=>({...cat(id),id,v})).sort((a,b)=>b.v-a.v);
   const tot=sumC(items.map(x=>x.v)),top=items.slice(0,5);
   if(items.length>5)top.push({name:'Everything else',color:'#94A3B8',v:sumC(items.slice(5).map(x=>x.v))});
 
@@ -2088,7 +2147,7 @@ function renderInsights(){
     <div class="sec"><h2>Where it went</h2><span class="mut" style="font-size:13px;font-weight:600">${tot?fm(tot):''}</span></div>
     <div class="card pad">${tot?`<div class="donutrow">
       ${ring(top.map(x=>({v:x.v/tot,c:x.color})),132,18,items.length+(items.length===1?' item':' items'))}
-      <div class="legend">${top.map(x=>`<div class="lg" style="--c:${x.color}"><i></i><span>${esc(x.name)}</span><b>${fm(x.v)}</b><em>${Math.round(x.v/tot*100)}%</em></div>`).join('')}</div>
+      <div class="legend">${top.map(x=>`<${x.id?`button onclick="openCatTx('${x.id}')"`:'div'} class="lg" style="--c:${x.color}"><i></i><span>${esc(x.name)}</span><b>${fm(x.v)}</b><em>${Math.round(x.v/tot*100)}%</em></${x.id?'button':'div'}>`).join('')}</div>
     </div>`:`<div class="empty" style="padding:20px">No spending in this period.</div>`}</div>
     <div class="sec"><h2>${trendTitle}</h2></div>
     <div class="card pad">
@@ -2097,7 +2156,7 @@ function renderInsights(){
         <line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="var(--line)"/>${bars}
       </svg>
     </div>
-    ${items.length?`<div class="sec"><h2>Top categories</h2></div><div class="list">${items.slice(0,8).map(x=>{const pc=x.v/items[0].v*100;return`<div class="bud" style="cursor:default"><div class="row"><span class="ico" style="--c:${x.color}">${ic(x.icon)}</span><span class="m"><div class="t">${esc(x.name)}</div><div class="s">${Math.round(x.v/tot*100)}% of spending</div></span><span class="r"><div class="a">${fm(x.v)}</div></span></div><div class="bar"><i style="--c:${x.color}" data-w="${pc}"></i></div></div>`;}).join('')}</div>`:''}
+    ${items.length?`<div class="sec"><h2>Categories</h2><span class="mut" style="font-size:12.5px;font-weight:600">Tap to see transactions</span></div><div class="list">${items.map(x=>{const pc=x.v/items[0].v*100;return`<button class="bud" onclick="openCatTx('${x.id}')"><div class="row"><span class="ico" style="--c:${x.color}">${ic(x.icon)}</span><span class="m"><div class="t">${esc(x.name)}</div><div class="s">${Math.round(x.v/tot*100)}% of spending · ${catTxns(x.id,p,d).length} transaction${catTxns(x.id,p,d).length===1?'':'s'}</div></span><span class="r"><div class="a">${fm(x.v)}</div></span>${ic('chevR','mut')}</div><div class="bar"><i style="--c:${x.color}" data-w="${pc}"></i></div></button>`;}).join('')}</div>`:''}
   `;
   animateBars();
 }
@@ -2114,7 +2173,13 @@ function planMath(p){
   const income=num(p.income);
   const cmts=sumC((p.commitments||[]).map(c=>c.type===PCT?r2(income*num(c.value)/100):num(c.value)));
   const available=income-cmts;
-  const allocs=(p.allocations||[]).map((a,i)=>{const amt=a.type===FIXED?num(a.value):r2(available*num(a.value)/100);return{name:a.name||'Allocation',amount:amt,color:PLAN_COLORS[i%PLAN_COLORS.length]};});
+  const allocs=(p.allocations||[]).map((a,i)=>{const amt=a.type===REST?0:a.type===FIXED?num(a.value):r2(available*num(a.value)/100);return{name:a.name||'Allocation',amount:amt,rest:a.type===REST,color:PLAN_COLORS[i%PLAN_COLORS.length]};});
+  // "Whatever is left" rows share what remains after every other allocation (split evenly, to the centavo)
+  const rest=allocs.filter(a=>a.rest);
+  if(rest.length){
+    const left=Math.max(0,Math.round((available-sumC(allocs.filter(a=>!a.rest).map(a=>a.amount)))*100));
+    const each=Math.floor(left/rest.length);rest.forEach((a,k)=>{a.amount=(each+(k<left-each*rest.length?1:0))/100;});
+  }
   const allocated=sumC(allocs.map(a=>a.amount));
   return{income,cmts,available,allocs,allocated,remaining:available-allocated};
 }
@@ -2176,7 +2241,7 @@ function renderPlan(){
         :`<button class="linkbtn" onclick="this.nextElementSibling.classList.toggle('open')">${ic('link')}Link to an account</button>
           <div class="picker">${db.accounts.length?db.accounts.map(x=>`<button class="chip" onclick="linkAlloc(${a.i},'${x.id}')">${logo(x,28)}<span class="tx2"><div>${esc(x.name)}</div><small>${fmc(acctBal(x.id),acctCur(x))}</small></span></button>`).join(''):'<span class="mut" style="font-size:13px">Add an account on Home first.</span>'}</div>`;
       return`<div class="alloc"><div class="row"><span class="ico" style="--c:${a.color}">${ic(planIcon(a.name))}</span>
-        <span style="flex:1;min-width:0"><div class="t">${esc(a.name)}</div><div class="s">${pct.toFixed(1)}% of available</div></span>
+        <span style="flex:1;min-width:0"><div class="t">${esc(a.name)}</div><div class="s">${a.rest?'Whatever is left · ':''}${pct.toFixed(1)}% of available</div></span>
         <span class="a">${fm(a.amount)}</span></div>
         <div class="bar"><i style="--c:${a.color}" data-w="${pct}"></i></div>${linkUI}</div>`;
     }).join('')}</div>`:`<button class="dashed" onclick="openPlanner(3)">${ic('plus')}Add allocations</button>`}
@@ -2219,7 +2284,7 @@ function plStep(n){
 function plNext(){
   if(pl.step===1&&num($('#pl-income').value)<=0)return toast('Enter your monthly income');
   if(pl.step<3)return plStep(pl.step+1);
-  const clean=l=>l.map(x=>({name:String(x.name||'').trim(),value:String(x.value??''),type:x.type})).filter(x=>x.name&&num(x.value)>0);
+  const clean=l=>l.map(x=>({name:String(x.name||'').trim(),value:x.type===REST?'':String(x.value??''),type:x.type})).filter(x=>x.name&&(x.type===REST||num(x.value)>0));
   db.plan={income:num($('#pl-income').value),commitments:clean(pl.cmts),allocations:clean(pl.allocs)};
   save();closeSheets();go('plan');toast('Plan saved');
 }
@@ -2227,6 +2292,7 @@ function plIncome(){
   const v=num($('#pl-income').value);
   $('#pl-hint').textContent=v>0?`About ${fm(v/30)} a day · ${fm(v*12)} a year`:'Use your monthly take-home pay after tax.';
 }
+function plAddRest(){pl.allocs.push({name:'Savings',value:'',type:REST});plRender('allocs');plLive();}
 function plAdd(kind,name=''){
   pl[kind].push({name,value:'',type:kind==='cmts'?FIXED:PCT});
   plRender(kind);
@@ -2237,12 +2303,13 @@ function plRender(kind){
   const list=pl[kind],used=new Set(list.map(x=>x.name.toLowerCase()));
   $(`#pl-${kind}`).innerHTML=list.map((x,i)=>`<div class="prow">
     <input class="in pn" placeholder="Name" value="${esc(x.name)}" oninput="pl.${kind}[${i}].name=this.value;plLive()" autocomplete="off">
-    <input class="in pv" placeholder="${x.type===PCT?'0':'0.00'}" inputmode="decimal" value="${esc(x.value)}" oninput="pl.${kind}[${i}].value=this.value;plLive()" autocomplete="off">
-    <select class="in" onchange="pl.${kind}[${i}].type=this.value;plLive()" aria-label="Amount type"><option value="${FIXED}" ${x.type===FIXED?'selected':''}>${esc(db.settings.sym)}</option><option value="${PCT}" ${x.type===PCT?'selected':''}>%</option></select>
+    <input class="in pv" placeholder="${x.type===REST?'All left':x.type===PCT?'0':'0.00'}" inputmode="decimal" value="${x.type===REST?'':esc(x.value)}" ${x.type===REST?'disabled':''} oninput="pl.${kind}[${i}].value=this.value;plLive()" autocomplete="off">
+    <select class="in" onchange="pl.${kind}[${i}].type=this.value;${kind==='allocs'?`plRender('${kind}');`:''}plLive()" aria-label="Amount type"><option value="${FIXED}" ${x.type===FIXED?'selected':''}>${esc(db.settings.sym)}</option><option value="${PCT}" ${x.type===PCT?'selected':''}>%</option>${kind==='allocs'?`<option value="${REST}" ${x.type===REST?'selected':''}>Rest</option>`:''}</select>
     <button class="x" onclick="pl.${kind}.splice(${i},1);plRender('${kind}');plLive()" aria-label="Remove">${ic('x')}</button>
   </div>`).join('');
   const sugg=kind==='cmts'?CMT_SUGG:ALLOC_SUGG;
-  $(`#pl-${kind==='cmts'?'cmt':'alloc'}-sugg`).innerHTML=sugg.filter(s=>!used.has(s.toLowerCase())).map(s=>`<button class="chip txt" onclick="plAdd('${kind}','${s}')">+ ${s}</button>`).join('');
+  $(`#pl-${kind==='cmts'?'cmt':'alloc'}-sugg`).innerHTML=sugg.filter(s=>!used.has(s.toLowerCase())).map(s=>`<button class="chip txt" onclick="plAdd('${kind}','${s}')">+ ${s}</button>`).join('')+(kind==='allocs'&&!list.some(x=>x.type===REST)?`<button class="chip txt" onclick="plAddRest()">+ Whatever is left</button>`:'');
+  fmtMoneyInputs($(`#pl-${kind}`));
 }
 function plLive(){
   if(pl.step!==3)return;
