@@ -429,6 +429,12 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
 .grip{touch-action:none;cursor:grab;width:34px;height:44px;display:grid;place-items:center;color:var(--faint);flex-shrink:0}
 .grip:active{cursor:grabbing;color:var(--text)}
 
+.setrow{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px;font-size:14.5px;font-weight:700;color:var(--text);text-decoration:none;text-align:left}
+.setrow+.setrow{border-top:1px solid var(--line)}
+.setrow svg.i{width:17px;height:17px;color:var(--faint)}
+.setrow.neg,.setrow.neg svg.i{color:var(--neg)}
+.setrow:active{background:var(--s2)}
+
 /* Account detail */
 .adhd{display:flex;align-items:center;gap:14px;margin:4px 0 18px}
 .adhd .m{flex:1;min-width:0}
@@ -505,7 +511,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <div class="onb-foot">
       <button class="btn" onclick="showAuth('signup')">Get started</button>
       <button class="btn ghost" onclick="showAuth('signin')">I already have an account</button>
-      <div class="credit">APX LABS</div>
+      <div class="credit">APX LABS · <a href="privacy.html" target="_blank" rel="noopener" style="color:inherit">PRIVACY</a></div>
     </div>
   </section>
 
@@ -549,6 +555,7 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <button class="link au-forgot" id="au-forgot" onclick="showAuth('forgot')">Forgot password?</button>
     <div style="flex:1;min-height:24px"></div>
     <div class="au-switch" id="au-switch"></div>
+    <div class="mut" style="font-size:12px;text-align:center;padding-bottom:6px">By continuing you agree to our <a href="privacy.html" target="_blank" rel="noopener" class="link" style="font-size:12px">Privacy policy</a>.</div>
   </section>
 </div>
 
@@ -786,7 +793,17 @@ select.in{appearance:none;-webkit-appearance:none;padding-right:8px}
     <input type="file" id="imp" accept=".csv,.json,.txt,text/csv,text/plain,application/json,application/vnd.ms-excel" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" onchange="importData(this)">
     <div class="mut" style="font-size:12.5px;margin-top:8px">Your data is saved to your account and syncs to every device you sign in on. Export keeps an offline copy. Import accepts a cove backup or a CSV from another app or your bank.</div>
   </div>
-  <div class="fld"><button class="btn danger" onclick="clearAll()"><svg class="i"><use href="#i-trash"/></svg>Erase all data</button></div>
+  <div class="fld"><button class="btn danger" onclick="clearAll()"><svg class="i"><use href="#i-trash"/></svg>Erase all data</button>
+    <div class="mut" style="font-size:12.5px;margin-top:6px">Clears your accounts and transactions but keeps your login.</div></div>
+  <div class="fld"><span class="lbl">Account &amp; privacy</span>
+    <div class="list" style="box-shadow:none">
+      <a class="setrow" href="privacy.html" target="_blank" rel="noopener"><span>Privacy policy</span><svg class="i"><use href="#i-chevR"/></svg></a>
+      <a class="setrow" href="mailto:apx.gst@gmail.com?subject=cove%20support"><span>Contact support</span><svg class="i"><use href="#i-chevR"/></svg></a>
+      <button class="setrow neg" onclick="deleteAccount()"><span>Delete account</span><svg class="i"><use href="#i-trash"/></svg></button>
+    </div>
+    <div class="mut" style="font-size:12.5px;margin-top:6px">Deleting your account permanently removes your login and all your cove data from our servers.</div>
+  </div>
+  <div class="mut" style="font-size:11.5px;text-align:center;margin-top:18px">cove by APX Labs</div>
 </div>
 
 <!-- CSV import -->
@@ -2695,6 +2712,18 @@ async function enter(u,fast){
 }
 function route(){histReset();if(hasData(db)||db.settings.onboarded)showApp();else showOnb(1);}
 
+// Permanently delete the user's login + data (App Store 5.1.1(v)). Server function only ever deletes the caller.
+async function deleteAccount(){
+  if(!sb||!user)return toast('Sign in first');
+  if(!navigator.onLine)return toast('Connect to the internet to delete your account');
+  if(!await ask('Delete your account?',`This permanently deletes ${user.email||'your login'} and every account, transaction, budget and plan in cove — on all your devices. Export a backup first if you want to keep a copy.`,'Continue'))return;
+  if(!await ask('Are you absolutely sure?','This can\'t be undone, and Undo won\'t bring it back.','Delete forever'))return;
+  const{error}=await sb.rpc('delete_my_account');
+  if(error){console.warn(error);return toast('Couldn\'t delete your account. Try again.');}
+  try{await sb.auth.signOut({scope:'local'});}catch(e){}
+  ['cove4','cove_uid','cove_dirty','cove_quotes','cove_fx'].forEach(lsDel);
+  lsSet('cove_deleted','1');location.replace(location.pathname);
+}
 async function signOut(){
   if(isDirty()&&navigator.onLine)await push();
   if(isDirty()&&!await ask('Changes not synced yet','Some recent changes haven\'t reached the cloud and will be lost if you sign out now.','Sign out anyway'))return;
@@ -2722,7 +2751,7 @@ async function signOut(){
   if(session&&recovery){user=session.user;hideSplash();showAuth('reset');}
   else if(session){await enter(session.user,true);setTimeout(hideSplash,350);}
   else if(!sb&&lsGet('cove_uid')){load();setSync('local');showApp();hideSplash();} // offline & library unavailable
-  else{hideSplash();showWelcome();}
+  else{hideSplash();showWelcome();if(lsGet('cove_deleted')){lsDel('cove_deleted');setTimeout(()=>toast('Your account was deleted'),400);}}
 })();
 
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
