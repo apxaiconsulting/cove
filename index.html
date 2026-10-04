@@ -333,6 +333,27 @@ svg text{font-family:var(--font)}
 .hero .hbar i{display:block;height:100%;border-radius:99px;background:var(--seg-alloc)}
 .hero .hrow{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;font-weight:700;opacity:.75}
 .icpick{display:flex;flex-wrap:wrap;gap:8px}
+.jars{margin-top:14px}
+.jars .jh{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}
+.jars .jh h4{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.jars .jsum{display:flex;gap:8px;margin-bottom:8px}
+.jars .jsum>div{flex:1;background:var(--s2);border-radius:13px;padding:10px 12px;min-width:0}
+.jars .jsum .k{font-size:11.5px;font-weight:700;color:var(--muted);line-height:1.3}
+.jars .jsum .v{line-height:1.3;margin-top:2px;font-size:15px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jar{display:flex;align-items:center;gap:12px;padding:12px 14px;width:100%}
+.jar+.jar{border-top:1px solid var(--line)}
+.jar .m{flex:1;min-width:0;text-align:left}
+.jar .t{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jar .s{font-size:12px;color:var(--muted);font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jar .a{font-size:15px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.jar .ico{width:36px;height:36px;border-radius:12px}
+.jar .bar{margin-top:6px;height:4px}
+.intc{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px 14px;border-radius:16px;background:var(--s2)}
+.intc .m{flex:1;min-width:0}
+.intc .t{font-size:12px;font-weight:700;color:var(--muted)}
+.intc .v{font-size:17px;font-weight:800;letter-spacing:-.03em}
+.intc .s{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.4}
+.jwarn{font-size:12px;font-weight:700;color:var(--warn);margin:6px 2px 0}
 .moreopt{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:13.5px;font-weight:700;color:var(--acc)}
 .moreopt svg.i{width:16px;height:16px;transition:transform .2s}
 .moreopt.open svg.i{transform:rotate(180deg)}
@@ -718,6 +739,7 @@ body.demo .demo-only{display:inline}
   <div class="chips wrap" id="tx-curs" style="margin-top:10px"></div>
   <div class="fld" id="tx-cat-fld"><span class="lbl">Category</span><div class="cats" id="tx-cats"></div></div>
   <div class="fld"><span class="lbl" id="tx-from-lbl">Account</span><div class="chips" id="tx-from"></div></div>
+  <div class="fld" id="tx-jar-fld" hidden><span class="lbl" id="tx-jar-lbl">From a jar?</span><div class="chips wrap" id="tx-jars"></div><div class="tog-hint" id="tx-jar-hint"></div></div>
   <div class="fld" id="tx-to-fld"><span class="lbl">To</span><div class="chips" id="tx-to"></div>
     <div class="chips wrap" id="tx-tcurs" style="margin-top:8px"></div>
     <div id="tx-tamt-fld" style="margin-top:12px"><label class="lbl" for="tx-tamt" id="tx-tamt-lbl">They receive</label><div class="money"><span id="tx-tsym"></span><input class="in" id="tx-tamt" inputmode="decimal" autocomplete="off" oninput="ui.tx.tamtTouched=true"></div><div class="tog-hint" id="tx-rate"></div></div>
@@ -759,6 +781,8 @@ body.demo .demo-only{display:inline}
   <div class="grab"></div>
   <div class="adhd" id="ad-hd"></div>
   <div class="adbal" id="ad-bal"></div>
+  <div class="jars" id="ad-jars"></div>
+  <div id="ad-int"></div>
   <div class="qa" id="ad-qa"></div>
   <div class="seg" id="ad-filters"></div>
   <div id="ad-list" style="margin-top:8px"></div>
@@ -851,6 +875,34 @@ body.demo .demo-only{display:inline}
   <div class="fld"><label class="lbl" for="gm-date">Date</label><input class="in" type="date" id="gm-date"></div>
   <div class="note"><svg class="i"><use href="#i-sparkle"/></svg><span>This only updates the goal's progress — your account balances don't change. Keeping the money in its own account? <button onclick="gmLink()">Link the goal to it</button> and progress updates by itself.</span></div>
   <div class="btnrow"><button class="btn" id="gm-save" onclick="saveGoalMove()">Add</button></div>
+</div>
+
+<!-- Jar -->
+<div class="sheet" id="sh-jar" role="dialog" aria-modal="true" aria-labelledby="jr-title">
+  <div class="grab"></div>
+  <div class="shd"><div><h3 id="jr-title">New jar</h3><div class="mut" style="font-size:13px;font-weight:600" id="jr-acct"></div></div><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="mut" style="font-size:13px;margin-top:4px" id="jr-intro">Set aside part of this account's balance for something — like GoTyme's Go Save, Maya's goals or a Tonik stash. The money stays in the account; cove just keeps it labeled.</div>
+  <div class="fld"><label class="lbl" for="jr-name">Jar name</label><input class="in" id="jr-name" placeholder="e.g. Travel, Bills, Emergency" autocomplete="off" oninput="jrAutoIcon()">
+    <div class="chips wrap" id="jr-sugg" style="margin-top:10px"></div></div>
+  <div class="fld" id="jr-start-fld"><label class="lbl" for="jr-start">Already in this jar</label><div class="money"><span id="jr-sym"></span><input class="in" id="jr-start" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="jrHint()"></div><div class="tog-hint" id="jr-hint"></div></div>
+  <button class="moreopt" id="jr-more-btn" onclick="jrMore()">More options<svg class="i"><use href="#i-chevD"/></svg></button>
+  <div id="jr-more" hidden><div class="fld"><span class="lbl">Icon</span><div class="icpick" id="jr-icons"></div></div></div>
+  <div class="btnrow">
+    <button class="btn danger" id="jr-del" onclick="delJar()" aria-label="Delete jar"><svg class="i"><use href="#i-trash"/></svg></button>
+    <button class="btn" onclick="saveJar()">Save jar</button>
+  </div>
+</div>
+
+<!-- Move money in / out of a jar -->
+<div class="sheet" id="sh-jmove" role="dialog" aria-modal="true" aria-labelledby="jm-title">
+  <div class="grab"></div>
+  <div class="shd"><div><h3 id="jm-title">Add to jar</h3><div class="mut" style="font-size:13px;font-weight:600" id="jm-sub"></div></div><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="seg" id="jm-types" style="margin-top:10px"></div>
+  <div class="amtin"><span id="jm-sym"></span><input id="jm-amt" type="text" inputmode="decimal" placeholder="0" autocomplete="off" aria-label="Amount"></div>
+  <div class="chips wrap" id="jm-quick" style="margin-top:10px"></div>
+  <div class="tog-hint" id="jm-hint" style="margin-top:12px"></div>
+  <div id="jm-goal" style="margin-top:12px"></div>
+  <div class="btnrow"><button class="btn ghost" id="jm-edit" style="flex:0 0 auto" onclick="jmEdit()">Edit jar</button><button class="btn" id="jm-save" onclick="saveJarMove()">Add</button></div>
 </div>
 
 <!-- Installment -->
@@ -1111,6 +1163,7 @@ const CATS=[
   {id:'freelance',name:'Freelance',icon:'laptop',color:'#3B82F6',t:'income'},
   {id:'business',name:'Business',icon:'store',color:'#F59E0B',t:'income'},
   {id:'returns',name:'Returns',icon:'trend',color:'#8B5CF6',t:'income'},
+  {id:'interest',name:'Interest',icon:'coins',color:'#14B8A6',t:'income'},
   {id:'gift',name:'Gift',icon:'gift',color:'#EC4899',t:'income'},
   {id:'other_i',name:'Other',icon:'more',color:'#94A3B8',t:'income'},
 ];
@@ -1151,7 +1204,7 @@ function normalize(p){
   x.goals=Array.isArray(x.goals)?x.goals:[];
   x.inst=Array.isArray(x.inst)?x.inst:[];
   x.settings.home=x.settings.home||x.settings.ccy;              // region for the bank catalog
-  for(const a of x.accounts)if(!a.ccy)a.ccy=x.settings.ccy;      // accounts made before multi-currency
+  for(const a of x.accounts){if(!a.ccy)a.ccy=x.settings.ccy;if(a.jars&&!Array.isArray(a.jars))a.jars=[];}      // accounts made before multi-currency
   return x;
 }
 function load(){db=freshDb();try{const s=lsGet(KEY);if(s)db=normalize(JSON.parse(s));}catch(e){}}
@@ -1457,7 +1510,7 @@ function renderHome(){
   $('#h-accts').innerHTML=db.accounts.map(a=>{const b=acctBal(a.id);return`
     <button class="acard" style="--c:${esc(a.bg)}" onclick="openAD('${a.id}')">
       <div class="tp">${logo(a,34)}<span class="ty">${esc(typeLabel(a))}</span></div>
-      <div><div class="nm">${esc(a.name)}</div><div class="bl ${b<0?'neg':''}">${isDebt(a.type)&&b<0?fmc(b,acctCur(a))+' <span style="font-size:11px;font-weight:700">owed</span>':(b<0?'−':'')+fmc(b,acctCur(a))}</div>${acctCurs(a).length>1||acctCur(a)!==disp()?`<div class="cv">${acctCurs(a).length>1?acctCurs(a).join(' · ')+' · ':''}≈ ${fm(acctBalD(a.id))}</div>`:''}</div>
+      <div><div class="nm">${esc(a.name)}</div><div class="bl ${b<0?'neg':''}">${isDebt(a.type)&&b<0?fmc(b,acctCur(a))+' <span style="font-size:11px;font-weight:700">owed</span>':(b<0?'−':'')+fmc(b,acctCur(a))}</div>${acctCurs(a).length>1||acctCur(a)!==disp()?`<div class="cv">${acctCurs(a).length>1?acctCurs(a).join(' · ')+' · ':''}≈ ${fm(acctBalD(a.id))}</div>`:''}${(a.jars||[]).length?`<div class="cv">${a.jars.length} jar${a.jars.length>1?'s':''} · ${fmc(jarsTotal(a),acctCur(a))} set aside</div>`:''}</div>
     </button>`;}).join('')+`<button class="acard add" onclick="openAcct()">${ic('plus')}Add</button>`;
 
   $('#h-periods').innerHTML=[['day','Today'],['month','Month'],['year','Year'],['all','All']].map(([k,l])=>`<button class="${ui.period===k?'on':''}" onclick="ui.period='${k}';renderHome()">${l}</button>`).join('');
@@ -1804,7 +1857,8 @@ function emptyHTML(icon,title,sub,btn=''){
 function txRow(t){
   const tr=t.type==='transfer',c=tr?TRANSFER:cat(t.cid),a=acct(t.aid),to=tr?acct(t.tid):null;
   const title=t.note?esc(t.note):esc(c.name);
-  const feeTxt=t.fee?` · ${fmc(t.fee,txCur(t))} fee`:'';
+  const jr=t.jid?findJar(t.aid,t.jid):null;
+  const feeTxt=(t.fee?` · ${fmc(t.fee,txCur(t))} ${t.cid==='interest'?'tax':'fee'}`:'')+(jr?` · ${esc(jr.name)} jar`:'');
   const sub=(t.note&&!tr?esc(c.name)+' · ':'')+(tr&&t.aid===t.tid?esc(a?.name||'')+' '+txCur(t)+' → '+txTCur(t):esc(a?.name||'Deleted account')+(tr?' → '+esc(to?.name||'Deleted account')+(txCur(t)!==txTCur(t)?' · '+money(txTAmt(t),txTCur(t)):''):''));
   const cls=t.type==='income'?'pos':t.type==='expense'?'':'acc';
   const sign=t.type==='income'?'+':t.type==='expense'?'−':'';
@@ -1842,11 +1896,13 @@ function openTxn(id,preset={}){
   const t=id?db.txns.find(x=>x.id===id):null;
   $('#sh-ad')._return=$('#sh-ad').classList.contains('open'); // reopen account detail after save/delete
   ui.tx=t?{id:t.id,type:t.type,cat:t.type==='transfer'?null:t.cid,aid:t.aid,tid:t.tid||null,cur:txCur(t),tcur:t.tid?txTCur(t):null,tamtTouched:t.tamt!=null}
-         :{id:null,type:preset.type||'expense',cat:preset.cat||null,aid:preset.aid||db.accounts[0].id,tid:null,cur:preset.cur||null,tcur:null,tamtTouched:false};
+         :{id:null,type:preset.type||'expense',cat:preset.cat||null,aid:preset.aid||db.accounts[0].id,tid:null,cur:preset.cur||null,tcur:null,tamtTouched:false,jid:preset.jid||null};
+  if(t)ui.tx.jid=t.jid||null;
   $('#tx-tamt').value=t&&t.tamt!=null?t.tamt:'';
   if(!t&&preset.tid)ui.tx.tid=preset.tid;
   if(ui.tx.type==='transfer'&&!ui.tx.tid)ui.tx.tid=db.accounts.find(a=>a.id!==ui.tx.aid)?.id||null;
-  $('#tx-title').textContent=t?'Edit transaction':'New transaction';
+  $('#tx-title').textContent=t?(t.cid==='interest'?'Edit interest':'Edit transaction'):'New transaction';
+  $('#tx-fee').closest('.fld').querySelector('.lbl').innerHTML=(t&&t.cid==='interest')?'Tax withheld <span style="font-weight:500">(optional)</span>':'Fee <span style="font-weight:500">(optional — bank, transfer or ATM fee)</span>';
   $('#tx-amt').value=t?t.amt:(preset.amt?Math.round(preset.amt*100)/100:'');
   $('#tx-date').value=t?t.date:isoDay(new Date());
   $('#tx-note').value=t?(t.note||''):(preset.note||'');
@@ -1876,6 +1932,7 @@ function renderTxForm(){
   $('#tx-cats').innerHTML=allCats(x.type).map(c=>`<button class="cat ${x.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.tx.cat='${c.id}';renderTxForm()"><span class="ico">${ic(c.icon)}</span>${esc(c.name)}</button>`).join('');
   $('#tx-from-lbl').textContent=x.type==='transfer'?'From':'Account';
   $('#tx-from').innerHTML=acctChips(x.aid,'pickFrom');
+  txJars();
   $('#tx-to-fld').hidden=x.type!=='transfer';
   if(x.type==='transfer'){
     $('#tx-to').innerHTML=acctChips(x.tid,'pickTo',fcs.length>1?null:x.aid); // multi-currency accounts can convert between their own pockets
@@ -1886,11 +1943,30 @@ function renderTxForm(){
   }else $('#tx-tamt-fld').hidden=true;
 }
 // Cross-currency transfer: show "they receive" pre-filled at today's rate (editable)
-function txFeeHint(){
+// Pay from (or put into) a jar inside the chosen account
+function txJars(){
+  const x=ui.tx,a=acct(x.aid),J=a&&!isDebt(a.type)&&a.type!=='invest'?(a.jars||[]):[],ok=J.length&&x.cur===acctCur(a);
+  $('#tx-jar-fld').hidden=!ok;if(!ok){x.jid=null;return;}
+  if(x.jid&&!J.some(j=>j.id===x.jid))x.jid=null;
+  const inc=x.type==='income',c=acctCur(a);
+  $('#tx-jar-lbl').textContent=inc?'Put it in a jar?':'Take it from a jar?';
+  $('#tx-jars').innerHTML=`<button class="chip txt ${!x.jid?'on':''}" onclick="ui.tx.jid=null;txJars()">${inc?'No jar':'Free money'}</button>`+J.map(j=>`<button class="chip txt ${x.jid===j.id?'on':''}" onclick="ui.tx.jid='${j.id}';txJars()">${esc(j.name)} <span class="mut" style="font-weight:600">${fmc(jarBalEx(j,x.id),c)}</span></button>`).join('');
+  txJarHint();
+}
+function txJarHint(){
+  const x=ui.tx,h=$('#tx-jar-hint');if(!h)return;
+  const a=acct(x.aid),j=x.jid&&a?findJar(a.id,x.jid):null;
+  if(!j){h.textContent='';h.classList.remove('warn');return;}
+  const amt=num($('#tx-amt').value),fee=num($('#tx-fee').value),c=acctCur(a),have=jarBalEx(j,x.id);
+  const after=x.type==='income'?r2(have+amt-fee):r2(have-amt-fee);
+  h.classList.toggle('warn',after<0);
+  h.textContent=after<0?`${j.name} only has ${fmc(have,c)} — it would go ${fmc(-after,c)} short.`:`${j.name} jar: ${fmc(have,c)} → ${fmc(after,c)}`;
+}
+function txFeeHint(){txJarHint();
   const x=ui.tx,amt=num($('#tx-amt').value),fee=num($('#tx-fee').value),h=$('#tx-fee-hint'),a=acct(x.aid);
   if(!(fee>0)){h.textContent='';return;}
   const m=v=>fmc(r2(v),x.cur),nm=a?a.name:'the account';
-  h.textContent=x.type==='income'?`Fee is deducted — ${m(amt-fee)} lands in ${nm}.`:x.type==='expense'?`Total out of ${nm}: ${m(amt+fee)} (${m(amt)} + ${m(fee)} fee).`:`${nm} pays the fee — ${m(amt+fee)} leaves ${nm} in total.`;
+  h.textContent=x.type==='income'?`${x.cat==='interest'?'Tax':'Fee'} is deducted — ${m(amt-fee)} lands in ${nm}.`:x.type==='expense'?`Total out of ${nm}: ${m(amt+fee)} (${m(amt)} + ${m(fee)} fee).`:`${nm} pays the fee — ${m(amt+fee)} leaves ${nm} in total.`;
 }
 function txAmtInput(){
   txFeeHint();
@@ -1902,7 +1978,7 @@ function txAmtInput(){
   if(!x.tamtTouched){const v=conv(num($('#tx-amt').value),x.cur,x.tcur);$('#tx-tamt').value=v?Math.round(v*100)/100:'';}
   $('#tx-rate').textContent=r?`Today's rate: 1 ${x.cur} = ${(+r.toPrecision(5)).toLocaleString()} ${x.tcur}. Change it to match what actually arrived.`:'Enter the amount that arrived.';
 }
-function pickFrom(id){ui.tx.aid=id;ui.tx.cur=null;ui.tx.tamtTouched=false;if(ui.tx.tid===id&&acctCurs(acct(id)).length<2)ui.tx.tid=db.accounts.find(a=>a.id!==id)?.id||null;renderTxForm();}
+function pickFrom(id){ui.tx.aid=id;ui.tx.cur=null;ui.tx.jid=null;ui.tx.tamtTouched=false;if(ui.tx.tid===id&&acctCurs(acct(id)).length<2)ui.tx.tid=db.accounts.find(a=>a.id!==id)?.id||null;renderTxForm();}
 function pickTo(id){ui.tx.tid=id;ui.tx.tcur=null;ui.tx.tamtTouched=false;renderTxForm();}
 
 function saveTxn(){
@@ -1915,7 +1991,8 @@ function saveTxn(){
   if(cross&&!(tamt>0))return toast('Enter how much arrived');
   const date=$('#tx-date').value||isoDay(new Date());
   const rec={amt,type:x.type,cid:x.type==='transfer'?'other_e':x.cat,aid:x.aid,tid:x.type==='transfer'?x.tid:null,date,note:$('#tx-note').value.trim(),
-    cur:x.cur,tcur:x.type==='transfer'?x.tcur:undefined,tamt,fee:r2(num($('#tx-fee').value))||undefined};
+    cur:x.cur,tcur:x.type==='transfer'?x.tcur:undefined,tamt,fee:r2(num($('#tx-fee').value))||undefined,
+    jid:x.jid&&findJar(x.aid,x.jid)&&x.cur===acctCur(acct(x.aid))?x.jid:undefined};
   if(x.id){Object.assign(db.txns.find(t=>t.id===x.id),rec);toast('Saved');}
   else{db.txns.push({id:uid(),...rec,ts:Date.now()});toast(`${x.type==='income'?'+':x.type==='expense'?'−':''}${fmc(amt,x.cur)} added`);}
   save();buzz();
@@ -1995,7 +2072,7 @@ async function delAcct(){
   db.accounts=db.accounts.filter(x=>x.id!==a.id);
   db.txns=db.txns.filter(t=>t.aid!==a.id&&t.tid!==a.id);
   if(db.planLinks)for(const k in db.planLinks)if(db.planLinks[k]===a.id)delete db.planLinks[k];
-  for(const g of db.goals)if(g.aid===a.id){g.log=[{id:uid(),date:isoDay(new Date()),amt:goalSaved(g)}];g.aid=null;}  // keep the progress it had
+  for(const g of db.goals)if(g.aid===a.id){g.log=[{id:uid(),date:isoDay(new Date()),amt:goalSaved(g)}];g.aid=null;g.jid=null;}  // keep the progress it had
   for(const i of db.inst)if(i.aid===a.id)i.aid=null;
   save();closeSheets();refresh();toast('Account deleted');
 }
@@ -2045,6 +2122,7 @@ function renderAD(){
   $('#ad-hd').innerHTML=`${logo(a,48)}<div class="m"><div class="n">${esc(a.name)}</div><div class="ty">${esc(a.label?a.label:typeLabel(a)+' account')}</div></div>
     <button class="iconbtn" style="box-shadow:none" onclick="openAcct('${a.id}')" aria-label="Edit account">${ic('edit')}</button>
     <button class="iconbtn" style="box-shadow:none" onclick="closeSheets()" aria-label="Close">${ic('x')}</button>`;
+  $('#ad-jars').innerHTML='';$('#ad-int').innerHTML='';
   if(a.type==='invest'){
     const p=investParts(a.id),cash=bal-p.stocks;
     const ac=acctCur(a);
@@ -2063,9 +2141,13 @@ function renderAD(){
       :[['income','Income','in','var(--pos)'],['expense','Expense','out','var(--neg)'],['transfer','Transfer','swap','var(--acc)']])
       .map(([k,l,i,c])=>`<button onclick="adQuick('${k}')"><span class="ib" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('');
   }
-  $('#ad-filters').innerHTML=[['all','All'],['income','Income'],['expense','Expenses'],['transfer','Transfers']].map(([k,l])=>`<button class="${ui.adFilter===k?'on':''}" onclick="ui.adFilter='${k}';renderAD()">${l}</button>`).join('');
+  renderJars(a);renderInterest(a);
+  const hasInt=db.txns.some(t=>t.aid===a.id&&t.cid==='interest');
+  if(ui.adFilter==='interest'&&!hasInt)ui.adFilter='all';
+  $('#ad-filters').innerHTML=[['all','All'],['income','Income'],['expense','Expenses'],['transfer','Transfers'],...(hasInt?[['interest','Interest']]:[])].map(([k,l])=>`<button class="${ui.adFilter===k?'on':''}" onclick="ui.adFilter='${k}';renderAD()">${l}</button>`).join('');
   let list=sortTx(db.txns.filter(t=>t.aid===a.id||(t.type==='transfer'&&t.tid===a.id)));
-  if(ui.adFilter!=='all')list=list.filter(t=>t.type===ui.adFilter);
+  if(ui.adFilter==='interest')list=list.filter(t=>t.aid===a.id&&t.cid==='interest');
+  else if(ui.adFilter!=='all')list=list.filter(t=>t.type===ui.adFilter);
   $('#ad-list').innerHTML=list.length?groupedList(list):`<div class="empty"><div class="ei">${ic('list')}</div><b>No transactions</b>Use the buttons above to add one.</div>`;
 }
 // Extra currency pockets (e.g. Wise USD/EUR/GBP alongside PHP)
@@ -2409,7 +2491,9 @@ function icPick(el,list,sel,fn){$(el).innerHTML=list.map(n=>`<button class="${n=
 
 // ── Goals ──
 function goalSaved(g){
-  if(g.aid&&acct(g.aid))return Math.max(0,r2(acctBalD(g.aid)));
+  const j=g.jid?findJar(g.aid,g.jid):null;
+  if(j)return Math.max(0,r2(toD(jarBal(j),acctCur(acct(g.aid)))??0));
+  if(g.aid&&acct(g.aid)&&!g.jid)return Math.max(0,r2(acctBalD(g.aid)));
   return Math.max(0,sumC((g.log||[]).map(l=>l.amt)));
 }
 function goalMath(g){
@@ -2434,31 +2518,33 @@ function renderGoals(){
       <div class="hrow"><span>${pct.toFixed(1)}% there</span><span>${monthly>0?`Set aside ${fm(monthly)}/mo`:''}</span></div>
     </div>
     <div class="sec"><h2>Your goals</h2><button class="link" onclick="openGoal()">Add</button></div>
-    <div class="list">${G.map((g,i)=>{const m=M[i],a=g.aid?acct(g.aid):null,color=PLAN_COLORS[i%PLAN_COLORS.length];
+    <div class="list">${G.map((g,i)=>{const m=M[i],a=g.aid?acct(g.aid):null,j=a&&g.jid?findJar(a.id,g.jid):null,color=PLAN_COLORS[i%PLAN_COLORS.length];
       const sub=m.done?'Goal reached 🎉':m.late?`Target date passed · ${fm(m.left)} to go`:m.per!=null?`${fm(m.per)}/mo to reach it by ${shortMonth(parseDay(g.date))}`:`${fm(m.left)} to go`;
       return`<div class="alloc gi ${m.done?'done':''}">
         <div class="row" onclick="openGoal('${g.id}')" style="cursor:pointer"><span class="ico" style="--c:${color}">${ic(g.icon||'coins')}</span>
           <span style="flex:1;min-width:0"><div class="t">${esc(g.name)}</div><div class="s">${sub}</div></span>
           <span class="a">${fm(m.saved)}<div class="s" style="text-align:right">of ${fm(m.target)}</div></span></div>
         <div class="bar"><i style="--c:${color}" data-w="${m.pct}"></i></div>
-        <div class="acts">${a?`${logo(a,26)}<span class="grow">Tracking ${esc(a.name)}</span>`:`<span class="grow">${m.pct.toFixed(1)}% saved</span>`}
-          ${a?'':`<button class="btn ghost sm" onclick="openGoalMove('${g.id}','out')">Withdraw</button><button class="btn sm" onclick="openGoalMove('${g.id}','in')">${ic('plus')}Add</button>`}</div>
+        <div class="acts">${a?`${logo(a,26)}<span class="grow">${j?`${esc(j.name)} jar · ${esc(a.name)}`:`Tracking ${esc(a.name)}`}</span>`:`<span class="grow">${m.pct.toFixed(1)}% saved</span>`}
+          ${j?`<button class="btn ghost sm" onclick="openJarMove('${a.id}','${j.id}','out')">Take out</button><button class="btn sm" onclick="openJarMove('${a.id}','${j.id}','in')">${ic('plus')}Add</button>`:a?'':`<button class="btn ghost sm" onclick="openGoalMove('${g.id}','out')">Withdraw</button><button class="btn sm" onclick="openGoalMove('${g.id}','in')">${ic('plus')}Add</button>`}</div>
       </div>`;}).join('')}</div>`;
   animateBars();
 }
-function openGoal(id){
+function openGoal(id,preset){
   const g=id?db.goals.find(x=>x.id===id):null;
-  ui.gl={id:g?.id||null,icon:g?.icon||'coins',aid:g?.aid||null,iconSet:!!g};
+  ui.gl={id:g?.id||null,icon:g?.icon||'coins',aid:g?.aid||null,jid:g?.jid||null,iconSet:!!g};
   $('#gl-more').hidden=true;$('#gl-more-btn').classList.remove('open');
   $('#gl-title').textContent=g?'Edit goal':'New goal';
   $('#gl-name').value=g?g.name:'';$('#gl-target').value=g?g.target:'';$('#gl-date').value=g?.date||'';
   $('#gl-start').value='';$('#gl-start-fld').hidden=!!g;$('#gl-del').hidden=!g;
+  if(preset){Object.assign(ui.gl,preset);$('#gl-name').value=preset.name||'';glAutoIcon();}
   syncSym();glRender();openSheet('sh-goal');
 }
 function glRender(){
   icPick('#gl-icons',GOAL_ICONS,ui.gl.icon,'glIcon');
-  $('#gl-src').innerHTML=`<button class="chip txt ${!ui.gl.aid?'on':''}" onclick="glSrc(null)">Add money manually</button>`+db.accounts.filter(a=>!isDebt(a.type)).map(a=>`<button class="chip ${ui.gl.aid===a.id?'on':''}" onclick="glSrc('${a.id}')">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div><small>${fmc(acctBal(a.id),acctCur(a))}</small></span></button>`).join('');
-  $('#gl-src-hint').textContent=ui.gl.aid?'Progress follows this account\'s balance automatically — nothing to update.':'Tap Add on the goal whenever you set money aside. It only keeps count; your account balances don\'t change.';
+  const jarChips=db.accounts.filter(a=>!isDebt(a.type)).flatMap(a=>(a.jars||[]).map(j=>`<button class="chip ${ui.gl.jid===j.id?'on':''}" onclick="glSrc('${a.id}','${j.id}')">${logo(a,28)}<span class="tx2"><div>${esc(j.name)} jar</div><small>${esc(a.name)} · ${fmc(jarBal(j),acctCur(a))}</small></span></button>`)).join('');
+  $('#gl-src').innerHTML=`<button class="chip txt ${!ui.gl.aid?'on':''}" onclick="glSrc(null)">Add money manually</button>`+jarChips+db.accounts.filter(a=>!isDebt(a.type)).map(a=>`<button class="chip ${ui.gl.aid===a.id&&!ui.gl.jid?'on':''}" onclick="glSrc('${a.id}')">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div><small>Whole account · ${fmc(acctBal(a.id),acctCur(a))}</small></span></button>`).join('');
+  $('#gl-src-hint').textContent=ui.gl.jid?'Progress follows this jar. Add money to the jar and the goal updates by itself.':ui.gl.aid?'Progress follows this account\'s balance automatically — nothing to update.':'Tap Add on the goal whenever you set money aside. It only keeps count; your account balances don\'t change.';
   $('#gl-start-fld').hidden=!!ui.gl.id||!!ui.gl.aid;
   glHint();
 }
@@ -2469,12 +2555,12 @@ function gmLink(){const id=ui.gm.id;closeSheets();setTimeout(()=>{openGoal(id);s
 const GOAL_GUESS=[[/emerg|rainy|safety/,'shield'],[/trip|travel|japan|korea|vacat|holiday|flight|tour|bora|palawan|europe/,'plane'],[/house|home|condo|lot|down ?pay|rent/,'home'],[/car|moto|bike|vehicle/,'car'],[/laptop|macbook|computer|pc\b|ipad|tablet/,'laptop'],[/phone|iphone|samsung|pixel/,'phone'],[/wedding|gift|christmas|birthday|anniv/,'gift'],[/school|tuition|educ|course|review/,'book'],[/health|hospital|surgery|dental|baby/,'heart'],[/bag|shoes|clothes|watch/,'bag']];
 const INST_GUESS=[[/phone|iphone|samsung|pixel|oppo|vivo|xiaomi/,'phone'],[/laptop|macbook|computer|pc\b|ipad|tablet|console|ps5|switch/,'laptop'],[/car|moto|motor|bike|vehicle|auto loan|nmax|click|aerox/,'car'],[/house|home|condo|ref|fridge|aircon|tv|washer|appliance|furniture|sofa|pag-?ibig|housing/,'home'],[/card|credit|bnpl|spaylater|ggives|billease|atome/,'card'],[/school|tuition|educ/,'book'],[/hospital|health|dental|medical/,'heart'],[/business|loan|sss|salary/,'briefcase'],[/shop|lazada|shopee|clothes|bag/,'bag']];
 function guessIcon(name,map,fallback){const n=(name||'').toLowerCase();return(map.find(([r])=>r.test(n))||[0,fallback])[1];}
-function glSrc(id){ui.gl.aid=id;glRender();}
+function glSrc(id,jid=null){ui.gl.aid=id;ui.gl.jid=jid;glRender();}
 function glHint(){
   const target=num($('#gl-target').value),date=$('#gl-date').value,h=$('#gl-hint');
-  const saved=ui.gl.aid?Math.max(0,acctBalD(ui.gl.aid)):ui.gl.id?goalSaved(db.goals.find(x=>x.id===ui.gl.id)):num($('#gl-start').value);
+  const saved=ui.gl.aid?goalSaved({aid:ui.gl.aid,jid:ui.gl.jid}):ui.gl.id?goalSaved(db.goals.find(x=>x.id===ui.gl.id)):num($('#gl-start').value);
   if(!(target>0)){h.textContent='';return;}
-  const m=goalMath({target,date,aid:ui.gl.aid,log:[{amt:saved}]});
+  const m=goalMath({target,date,log:[{amt:saved}]});
   h.textContent=m.done?'You already have enough for this one 🎉':m.late?'That date has already passed.':m.per!=null?`Set aside ${fm(m.per)} a month for ${m.months} month${m.months>1?'s':''} to get there.`:`${fm(m.left)} to go. Add a date to see how much to save each month.`;
 }
 function saveGoal(){
@@ -2482,7 +2568,7 @@ function saveGoal(){
   if(!name)return toast('Name your goal');
   if(!(target>0))return toast('Enter a target amount');
   if(!ui.gl.iconSet)ui.gl.icon=guessIcon(name,GOAL_GUESS,'coins');
-  const rec={name,icon:ui.gl.icon,target,date:$('#gl-date').value||null,aid:ui.gl.aid||null};
+  const rec={name,icon:ui.gl.icon,target,date:$('#gl-date').value||null,aid:ui.gl.aid||null,jid:ui.gl.aid&&ui.gl.jid||null};
   if(ui.gl.id)Object.assign(db.goals.find(x=>x.id===ui.gl.id),rec);
   else{const st=r2(num($('#gl-start').value));db.goals.push({id:uid(),...rec,log:st>0&&!rec.aid?[{id:uid(),date:isoDay(new Date()),amt:st}]:[]});}
   save();closeSheets();ui.pTab='goals';go('plan');toast(ui.gl.id?'Goal saved':'Goal added');
@@ -2511,6 +2597,115 @@ function saveGoalMove(){
   (g.log=g.log||[]).push({id:uid(),date:$('#gm-date').value||isoDay(new Date()),amt});
   save();closeSheets();renderPlan();
   const m=goalMath(g);toast(m.done&&amt>0?`${g.name} reached 🎉`:`${amt>0?'+':'−'}${fm(amt)} · ${m.pct.toFixed(1)}% there`);
+}
+
+// ── Jars: labeled parts of an account's balance (money never leaves the account) ──
+const JAR_SUGG=['Emergency','Travel','Bills','Gadgets','Gifts','Car','Health','Shopping'];
+const findJar=(aid,jid)=>(acct(aid)?.jars||[]).find(j=>j.id===jid)||null;
+// A jar holds what was moved into it, plus income put in it, minus spending taken from it
+const jarTx=(t,jid)=>t.jid===jid?(t.type==='income'?r2(t.amt-(t.fee||0)):-r2(t.amt+(t.fee||0))):0;
+const jarBalEx=(j,skipTx)=>sumC((j.log||[]).map(l=>l.amt).concat(db.txns.filter(t=>t.jid===j.id&&t.id!==skipTx).map(t=>jarTx(t,j.id))));
+const jarBal=j=>jarBalEx(j,null);
+const jarsTotal=a=>sumC((a.jars||[]).map(jarBal));
+const jarFree=a=>r2(balIn(a,acctCur(a))-jarsTotal(a));
+const jarGoal=(aid,jid)=>(db.goals||[]).find(g=>g.aid===aid&&g.jid===jid);
+function renderJars(a){
+  const el=$('#ad-jars');
+  if(isDebt(a.type)||a.type==='invest'){el.innerHTML='';return;}
+  const J=a.jars||[],c=acctCur(a);
+  if(!J.length){el.innerHTML=`<button class="dashed" onclick="openJar()">${ic('coins')}Split into jars — Travel, Bills, Emergency…</button>`;return;}
+  const tot=jarsTotal(a),free=jarFree(a);
+  el.innerHTML=`<div class="jh"><h4>Jars</h4><button class="link" onclick="openJar()">+ New jar</button></div>
+    <div class="jsum"><div><div class="k">In jars</div><div class="v">${fmc(tot,c)}</div></div><div><div class="k">Free to spend</div><div class="v ${free<0?'neg':''}">${free<0?'−':''}${fmc(free,c)}</div></div></div>
+    <div class="list">${J.map((j,k)=>{const g=jarGoal(a.id,j.id),m=g?goalMath(g):null,color=PLAN_COLORS[(k+1)%PLAN_COLORS.length];
+      return`<button class="jar" onclick="openJarMove('${a.id}','${j.id}','in')"><span class="ico" style="--c:${color}">${ic(j.icon||'coins')}</span>
+        <span class="m"><div class="t">${esc(j.name)}</div><div class="s">${g?`Goal: ${esc(g.name)} · ${m.pct.toFixed(1)}%`:'Tap to add or take out'}</div>${g?`<div class="bar"><i style="--c:${color};width:${m.pct}%"></i></div>`:''}</span>
+        <span class="a">${fmc(jarBal(j),c)}</span></button>`;}).join('')}</div>
+    ${free<0?`<div class="jwarn">Jars hold more than the ${fmc(balIn(a,c),c)} in this account. Take some out, or log the income you're missing.</div>`:''}`;
+}
+function openJar(jid){
+  const a=acct(ui.adId);if(!a)return;
+  const j=jid?findJar(a.id,jid):null;
+  ui.jr={aid:a.id,id:j?.id||null,icon:j?.icon||'coins',iconSet:!!j};
+  $('#jr-title').textContent=j?'Edit jar':'New jar';$('#jr-acct').textContent=a.name;$('#jr-intro').hidden=!!j;
+  $('#jr-name').value=j?j.name:'';$('#jr-start').value='';$('#jr-start-fld').hidden=!!j;$('#jr-del').hidden=!j;
+  $('#jr-sym').textContent=curSym(acctCur(a));$('#jr-more').hidden=true;$('#jr-more-btn').classList.remove('open');
+  const used=new Set((a.jars||[]).map(x=>x.name.toLowerCase()));
+  $('#jr-sugg').innerHTML=j?'':JAR_SUGG.filter(n=>!used.has(n.toLowerCase())).map(n=>`<button class="chip txt" onclick="$('#jr-name').value='${n}';jrAutoIcon()">${n}</button>`).join('');
+  icPick('#jr-icons',GOAL_ICONS,ui.jr.icon,'jrIcon');jrHint();openSheet('sh-jar');
+}
+function jrIcon(n){ui.jr.icon=n;ui.jr.iconSet=true;icPick('#jr-icons',GOAL_ICONS,n,'jrIcon');}
+function jrAutoIcon(){if(ui.jr.iconSet)return;ui.jr.icon=guessIcon($('#jr-name').value,GOAL_GUESS,'coins');icPick('#jr-icons',GOAL_ICONS,ui.jr.icon,'jrIcon');}
+function jrMore(){const m=$('#jr-more');m.hidden=!m.hidden;$('#jr-more-btn').classList.toggle('open',!m.hidden);}
+function jrHint(){const a=acct(ui.jr.aid);if(!a)return;const c=acctCur(a);$('#jr-hint').textContent=`${fmc(jarFree(a),c)} in ${a.name} isn't in a jar yet.`;}
+function saveJar(){
+  const a=acct(ui.jr.aid);if(!a)return;
+  const name=$('#jr-name').value.trim();if(!name)return toast('Name the jar');
+  if(!ui.jr.iconSet)ui.jr.icon=guessIcon(name,GOAL_GUESS,'coins');
+  if(ui.jr.id){Object.assign(findJar(a.id,ui.jr.id),{name,icon:ui.jr.icon});}
+  else{const st=r2(num($('#jr-start').value)),free=jarFree(a);
+    if(st>0&&st>free)return toast(`Only ${fmc(free,acctCur(a))} isn't in a jar yet`);
+    (a.jars=a.jars||[]).push({id:uid(),name,icon:ui.jr.icon,log:st>0?[{id:uid(),date:isoDay(new Date()),amt:st}]:[]});}
+  save();closeSheets();openAD(a.id,true);refresh();toast(ui.jr.id?'Jar saved':`${name} jar added`);
+}
+async function delJar(){
+  const a=acct(ui.jr.aid),j=a&&findJar(a.id,ui.jr.id);if(!j)return;
+  const g=jarGoal(a.id,j.id);
+  if(!await ask(`Delete ${j.name} jar?`,`Its ${fmc(jarBal(j),acctCur(a))} goes back to free money in ${a.name}.${g?` The goal "${g.name}" keeps its progress and switches to manual.`:''} You can bring it back with Undo.`))return;
+  if(g){g.log=[{id:uid(),date:isoDay(new Date()),amt:goalSaved(g)}];g.aid=null;g.jid=null;}
+  a.jars=a.jars.filter(x=>x.id!==j.id);save();closeSheets();openAD(a.id,true);refresh();toast('Jar deleted');
+}
+function openJarMove(aid,jid,dir){
+  const a=acct(aid),j=findJar(aid,jid);if(!j)return;
+  ui.adId=aid;ui.jm={aid,jid,dir,back:$('#sh-ad').classList.contains('open')};
+  $('#jm-sym').textContent=curSym(acctCur(a));$('#jm-amt').value='';
+  jmRender();openSheet('sh-jmove');
+  if(matchMedia('(pointer:fine)').matches)setTimeout(()=>$('#jm-amt').focus(),320);
+}
+function jmRender(){
+  const{aid,jid,dir}=ui.jm,a=acct(aid),j=findJar(aid,jid),c=acctCur(a),g=jarGoal(aid,jid);
+  $('#jm-title').textContent=dir==='in'?`Add to ${j.name}`:`Take out of ${j.name}`;
+  $('#jm-sub').textContent=`${a.name} · ${fmc(jarBal(j),c)} in this jar`;
+  $('#jm-types').innerHTML=[['in','Add to jar'],['out','Take out']].map(([k,l])=>`<button class="${dir===k?'on':''}" onclick="ui.jm.dir='${k}';jmRender()">${l}</button>`).join('');
+  const left=g?goalMath(g):null,max=dir==='in'?jarFree(a):jarBal(j);
+  const q=dir==='in'?[[left&&!left.done&&left.per?r2(conv(left.per,disp(),c)??left.per):null,'Monthly goal amount'],[left&&!left.done?r2(conv(left.left,disp(),c)??left.left):null,'Rest of goal'],[max>0?max:null,'All free money']]:[[max>0?max:null,'Everything']];
+  $('#jm-quick').innerHTML=q.filter(([v])=>v>0).map(([v,l])=>`<button class="chip txt" onclick="$('#jm-amt').value=groupDigits('${v}')">${l} · ${fmc(v,c)}</button>`).join('');
+  $('#jm-hint').textContent=dir==='in'?`${fmc(Math.max(0,jarFree(a)),c)} in ${a.name} isn't in a jar. Your account balance stays the same — the money just gets a label.`:`It goes back to free money in ${a.name}.`;
+  $('#jm-save').textContent=dir==='in'?'Add to jar':'Take out';
+  $('#jm-goal').innerHTML=g?'':`<button class="link" style="font-size:13px" onclick="jmGoal()">${ic('target')} Turn this jar into a goal</button>`;
+}
+function jmGoal(){const{aid,jid}=ui.jm,j=findJar(aid,jid);closeSheets();ui.pTab='goals';setTimeout(()=>openGoal(null,{aid,jid,name:j.name}),250);}
+function jmEdit(){const{aid,jid}=ui.jm;closeSheets();ui.adId=aid;setTimeout(()=>openJar(jid),250);}
+function saveJarMove(){
+  const{aid,jid,dir,back}=ui.jm,a=acct(aid),j=findJar(aid,jid);if(!j)return;
+  const c=acctCur(a),amt=r2(num($('#jm-amt').value));if(!(amt>0))return toast('Enter an amount');
+  const max=dir==='in'?jarFree(a):jarBal(j);
+  if(amt>max+0.004)return toast(dir==='in'?`Only ${fmc(Math.max(0,max),c)} isn't in a jar yet`:`Only ${fmc(max,c)} is in this jar`);
+  (j.log=j.log||[]).push({id:uid(),date:isoDay(new Date()),amt:dir==='in'?amt:-amt});
+  save();buzz();closeSheets();if(back)openAD(aid,true);refresh();
+  const g=jarGoal(aid,jid),m=g?goalMath(g):null;
+  toast(m&&m.done&&dir==='in'?`${g.name} reached 🎉`:`${dir==='in'?'+':'−'}${fmc(amt,c)} · ${j.name} now ${fmc(jarBal(j),c)}`);
+}
+
+// ── Interest log (interest credited to a bank/wallet; tax withheld is noted as its fee) ──
+const canInterest=a=>a&&(a.type==='bank'||a.type==='ewallet');
+function renderInterest(a){
+  const el=$('#ad-int');
+  if(!canInterest(a)){el.innerHTML='';return;}
+  const c=acctCur(a),T=db.txns.filter(t=>t.aid===a.id&&t.cid==='interest'&&txCur(t)===c),now=new Date();
+  const net=t=>r2(t.amt-(t.fee||0));
+  const mo=sumC(T.filter(t=>t.date.slice(0,7)===isoDay(now).slice(0,7)).map(net)),yr=sumC(T.filter(t=>t.date.slice(0,4)===String(now.getFullYear())).map(net)),all=sumC(T.map(net)),tax=sumC(T.map(t=>t.fee||0));
+  el.innerHTML=T.length?`<div class="intc"><span class="ico" style="--c:#14B8A6">${ic('coins')}</span>
+      <span class="m"><div class="t">Interest earned this year</div><div class="v">${fmc(yr,c)}</div><div class="s">This month ${fmc(mo,c)} · All time ${fmc(all,c)}${tax?` · ${fmc(tax,c)} tax withheld`:''}</div></span>
+      <button class="btn sm" onclick="openInterest()">${ic('plus')}Log</button></div>`
+    :`<button class="dashed" style="margin-top:10px" onclick="openInterest()">${ic('coins')}Log interest earned</button>`;
+}
+function openInterest(){
+  const a=acct(ui.adId);if(!a)return;
+  openTxn(null,{type:'income',cat:'interest',aid:a.id,note:'Interest'});
+  $('#tx-title').textContent='Log interest';
+  $('#tx-fee').placeholder='0.00';
+  $('#tx-fee').closest('.fld').querySelector('.lbl').innerHTML='Tax withheld <span style="font-weight:500">(optional — e.g. the 20% final tax)</span>';
 }
 
 // ── Installments ──
@@ -3119,7 +3314,7 @@ function makeDemoData(){
     A('bpi','BPI Savings','BPI','#D6322E','bank',48250),
     A('gcash','GCash','G','#0B6BFF','ewallet',2150.5),
     A('maya','Maya Savings','maya','#000000','bank',18000,{fg:'#3DDC84',label:'Emergency Fund'}),
-    A('gotyme','GoTyme Savings','GO','#00E5FF','bank',9600,{fg:'#0B1220'}),
+    A('gotyme','GoTyme Savings','GO','#00E5FF','bank',33600,{fg:'#0B1220',jars:[{id:'j_laptop',name:'New laptop',icon:'laptop',log:[{id:'jl1',date:isoDay(new Date(Date.now()-60*864e5)),amt:12000},{id:'jl2',date:isoDay(new Date(Date.now()-25*864e5)),amt:9000}]},{id:'j_bills',name:'Bills',icon:'zap',log:[{id:'jl3',date:isoDay(new Date(Date.now()-20*864e5)),amt:6500}]},{id:'j_gifts',name:'Christmas gifts',icon:'gift',log:[{id:'jl4',date:isoDay(new Date(Date.now()-9*864e5)),amt:3000}]}]}),
     A('bdocc','BDO Credit Card','BDO','#0B4EA2','credit',-6420.75),
     A('wise','Wise','W','#9FE870','ewallet',0,{fg:'#163300',pockets:[{ccy:'USD',bal:215.4}]}),
     A('inv','Gotrade','INV','#7C3AED','invest',2500,{label:'Stocks'}),
@@ -3142,6 +3337,7 @@ function makeDemoData(){
     if(dom===12)T(d,'expense',549,'fun','bdocc','Netflix');
     if(dom===14)T(d,'expense',194,'fun','bdocc','Spotify');
     if(dom===16){X(d,5000,'bpi','inv','Deposit to Gotrade',15);X(d,5000,'bpi','maya','Emergency fund');}
+    if(dom===last){T(d,'income',112.5,'interest','gotyme','Interest',{fee:22.5,jid:'j_laptop'});T(d,'income',96.25,'interest','maya','Interest',{fee:19.25});}
     if(dom===25&&bal.bdocc<0)X(d,Math.round(-bal.bdocc*100)/100,'bpi','bdocc','Card payment — full balance');
     if(dow===6)T(d,'expense',amt(1850,4200),'groceries','bpi',pick(['SM Supermarket','Puregold','Robinsons Supermarket']));
     const meals=dow===0||dow===6?2:1+(rnd()<.5?1:0);
@@ -3163,7 +3359,7 @@ function makeDemoData(){
     goals:[
       {id:'g_japan',name:'Japan trip',icon:'plane',target:85000,date:isoDay(new Date(today.getFullYear(),today.getMonth()+7,1)),aid:null,log:[{id:'gl1',date:isoDay(new Date(today.getFullYear(),today.getMonth()-3,16)),amt:15000},{id:'gl2',date:isoDay(new Date(today.getFullYear(),today.getMonth()-1,16)),amt:12500}]},
       {id:'g_ef',name:'Emergency fund',icon:'shield',target:100000,date:null,aid:'maya',log:[]},
-      {id:'g_laptop',name:'New laptop',icon:'laptop',target:72990,date:isoDay(new Date(today.getFullYear(),today.getMonth()+4,30)),aid:null,log:[{id:'gl3',date:isoDay(new Date(today.getFullYear(),today.getMonth()-2,1)),amt:21000}]},
+      {id:'g_laptop',name:'New laptop',icon:'laptop',target:72990,date:isoDay(new Date(today.getFullYear(),today.getMonth()+4,30)),aid:'gotyme',jid:'j_laptop',log:[]},
     ],
     inst:[
       {id:'i_phone',name:'iPhone 16 · 0% plan',icon:'phone',monthly:3332.92,months:24,paid:7,start:isoDay(new Date(today.getFullYear(),today.getMonth()-7,today.getDate()+3)),aid:'bdocc'},
