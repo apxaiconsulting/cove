@@ -317,6 +317,31 @@ svg text{font-family:var(--font)}
 .linkbtn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;font-weight:700;color:var(--acc)}
 .linkbtn svg.i{width:16px;height:16px}
 .picker{display:none;flex-wrap:wrap;gap:6px;margin-top:10px}
+/* ── Goals & installments ── */
+#p-tabs{margin:-4px 0 16px}
+.gi .row{display:flex;align-items:center;gap:12px}
+.gi .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.gi .meta b{color:var(--text);font-weight:800}
+.gi .acts{display:flex;align-items:center;gap:8px;margin-top:12px}
+.gi .acts .grow{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gi.done .bar i{background:var(--pos)!important}
+.due{display:inline-flex;align-items:center;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px;background:var(--s2);color:var(--muted);white-space:nowrap}
+.due.soon{color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.due.late{color:var(--neg);background:color-mix(in srgb,var(--neg) 14%,transparent)}
+.due.ok{color:var(--pos);background:color-mix(in srgb,var(--pos) 14%,transparent)}
+.hero .hbar{height:8px;border-radius:99px;background:var(--hero-soft);overflow:hidden;margin-top:16px}
+.hero .hbar i{display:block;height:100%;border-radius:99px;background:var(--seg-alloc)}
+.hero .hrow{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;font-weight:700;opacity:.75}
+.icpick{display:flex;flex-wrap:wrap;gap:8px}
+.moreopt{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:13.5px;font-weight:700;color:var(--acc)}
+.moreopt svg.i{width:16px;height:16px;transition:transform .2s}
+.moreopt.open svg.i{transform:rotate(180deg)}
+.note{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--s2);font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.45}
+.note svg.i{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.note button{color:var(--acc);font-weight:700}
+.icpick button{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--s2);color:var(--muted);border:1.5px solid transparent}
+.icpick button.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.icpick svg.i{width:20px;height:20px}
 .picker.open{display:flex}
 .x{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--muted)}
 .x svg.i{width:16px;height:16px}
@@ -621,6 +646,8 @@ body.demo .demo-only{display:inline}
         </div>
         <div class="mut" style="font-size:12px;font-weight:600;margin-top:10px" id="h-range"></div>
       </div>
+      <div id="h-due"></div>
+      <div id="h-goals"></div>
       <div class="sec"><h2>Recent</h2><button class="link" onclick="go('txns')">See all</button></div>
       <div id="h-recent"></div>
       <div class="sec"><h2>Budgets</h2><button class="link" onclick="go('budget')">Manage</button></div>
@@ -662,9 +689,10 @@ body.demo .demo-only{display:inline}
     <!-- PLAN -->
     <section class="scr" id="scr-plan">
       <div class="top">
-        <div><div class="eyebrow">Allocation planner</div><div class="h1">My plan</div></div>
+        <div><div class="eyebrow" id="p-eyebrow">Allocation planner</div><div class="h1" id="p-title">My plan</div></div>
         <button class="iconbtn" id="p-edit" onclick="openPlanner()" aria-label="Edit plan"><svg class="i"><use href="#i-edit"/></svg></button>
       </div>
+      <div class="seg" id="p-tabs"></div>
       <div id="p-body"></div>
     </section>
   </main>
@@ -791,6 +819,60 @@ body.demo .demo-only{display:inline}
   <div class="btnrow">
     <button class="btn danger" id="bg-del" onclick="delBudget()" aria-label="Remove budget"><svg class="i"><use href="#i-trash"/></svg></button>
     <button class="btn" onclick="saveBudget()">Save budget</button>
+  </div>
+</div>
+
+<!-- Goal -->
+<div class="sheet" id="sh-goal" role="dialog" aria-modal="true" aria-labelledby="gl-title">
+  <div class="grab"></div>
+  <div class="shd"><h3 id="gl-title">New goal</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="fld"><label class="lbl" for="gl-name">What are you saving for?</label><input class="in" id="gl-name" placeholder="e.g. Japan trip, new laptop" autocomplete="off" oninput="glAutoIcon()"></div>
+  <div class="two fld">
+    <div><label class="lbl" for="gl-target">Target</label><div class="money"><span class="sym"></span><input class="in" id="gl-target" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="glHint()"></div></div>
+    <div><label class="lbl" for="gl-date">By <span style="font-weight:500">(optional)</span></label><input class="in" type="date" id="gl-date" oninput="glHint()"></div>
+  </div>
+  <div class="fld"><span class="lbl">Track progress</span><div class="chips wrap" id="gl-src"></div><div class="tog-hint" id="gl-src-hint"></div></div>
+  <div class="fld" id="gl-start-fld"><label class="lbl" for="gl-start">Already saved</label><div class="money"><span class="sym"></span><input class="in" id="gl-start" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="glHint()"></div></div>
+  <button class="moreopt" id="gl-more-btn" onclick="glMore()">More options<svg class="i"><use href="#i-chevD"/></svg></button>
+  <div id="gl-more" hidden><div class="fld"><span class="lbl">Icon</span><div class="icpick" id="gl-icons"></div></div></div>
+  <div class="tog-hint" id="gl-hint" style="margin-top:12px"></div>
+  <div class="btnrow">
+    <button class="btn danger" id="gl-del" onclick="delGoal()" aria-label="Delete goal"><svg class="i"><use href="#i-trash"/></svg></button>
+    <button class="btn" onclick="saveGoal()">Save goal</button>
+  </div>
+</div>
+
+<!-- Add money to a goal -->
+<div class="sheet" id="sh-gmove" role="dialog" aria-modal="true" aria-labelledby="gm-title">
+  <div class="grab"></div>
+  <div class="shd"><div><h3 id="gm-title">Add money</h3><div class="mut" style="font-size:13px;font-weight:600" id="gm-sub"></div></div><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="seg" id="gm-types" style="margin-top:10px"></div>
+  <div class="amtin"><span class="sym"></span><input id="gm-amt" type="text" inputmode="decimal" placeholder="0" autocomplete="off" aria-label="Amount"></div>
+  <div class="fld"><label class="lbl" for="gm-date">Date</label><input class="in" type="date" id="gm-date"></div>
+  <div class="note"><svg class="i"><use href="#i-sparkle"/></svg><span>This only updates the goal's progress — your account balances don't change. Keeping the money in its own account? <button onclick="gmLink()">Link the goal to it</button> and progress updates by itself.</span></div>
+  <div class="btnrow"><button class="btn" id="gm-save" onclick="saveGoalMove()">Add</button></div>
+</div>
+
+<!-- Installment -->
+<div class="sheet" id="sh-inst" role="dialog" aria-modal="true" aria-labelledby="in-title">
+  <div class="grab"></div>
+  <div class="shd"><h3 id="in-title">New installment</h3><button class="iconbtn" onclick="closeSheets()" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="fld"><label class="lbl" for="in-name">What are you paying for?</label><input class="in" id="in-name" placeholder="e.g. iPhone 0% plan, motorcycle loan" autocomplete="off" oninput="inAutoIcon()"></div>
+  <div class="fld"><label class="lbl" for="in-amt">Monthly payment</label><div class="money"><span class="sym"></span><input class="in" id="in-amt" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="inHint()"></div></div>
+  <div class="fld"><label class="lbl" for="in-left">Payments left</label>
+    <div class="chips wrap" id="in-left-chips" style="margin-bottom:10px"></div>
+    <input class="in" id="in-left" inputmode="numeric" placeholder="How many months to go?" autocomplete="off" oninput="inRenderLeft();inHint()"></div>
+  <div class="fld"><label class="lbl" for="in-next">Next payment</label><input class="in" type="date" id="in-next" oninput="inHint()"></div>
+  <div class="fld"><span class="lbl">Pay from</span><div class="chips wrap" id="in-from"></div></div>
+  <button class="moreopt" id="in-more-btn" onclick="inMore()">More options<svg class="i"><use href="#i-chevD"/></svg></button>
+  <div id="in-more" hidden>
+    <div class="fld"><label class="lbl" for="in-total">Total months in the plan <span style="font-weight:500">(optional — shows how far along you are)</span></label><input class="in" id="in-total" inputmode="numeric" placeholder="e.g. 24" autocomplete="off" oninput="inHint()"></div>
+    <div class="fld"><span class="lbl">Icon</span><div class="icpick" id="in-icons"></div></div>
+  </div>
+  <div class="tog-hint" id="in-hint" style="margin-top:14px"></div>
+  <div class="btnrow">
+    <button class="btn danger" id="in-del" onclick="delInst()" aria-label="Delete installment"><svg class="i"><use href="#i-trash"/></svg></button>
+    <button class="btn" onclick="saveInst()">Save installment</button>
   </div>
 </div>
 
@@ -1022,6 +1104,7 @@ const CATS=[
   {id:'fun',name:'Fun',icon:'film',color:'#F59E0B',t:'expense'},
   {id:'education',name:'Education',icon:'book',color:'#06B6D4',t:'expense'},
   {id:'savings',name:'Savings',icon:'coins',color:'#10B981',t:'expense'},
+  {id:'installments',name:'Installments',icon:'card',color:'#0EA5E9',t:'expense'},
   {id:'fees',name:'Fees',icon:'card',color:'#64748B',t:'expense'},
   {id:'other_e',name:'Other',icon:'more',color:'#94A3B8',t:'expense'},
   {id:'salary',name:'Salary',icon:'briefcase',color:'#10B981',t:'income'},
@@ -1057,7 +1140,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
 const freshDb=()=>({accounts:[],txns:[],budgets:{},settings:{ccy:'PHP',sym:'₱',loc:'en-PH'}});
 let db=freshDb();
-const ui={scr:'home',period:'month',filter:'all',bgtM:firstOfMonth(new Date()),tx:{},ac:{},adId:null,adFilter:'all',bg:{}};
+const ui={pTab:'plan',gl:{},gm:{},ins:{},scr:'home',period:'month',filter:'all',bgtM:firstOfMonth(new Date()),tx:{},ac:{},adId:null,adFilter:'all',bg:{}};
 
 function normalize(p){
   const d=freshDb();
@@ -1065,6 +1148,8 @@ function normalize(p){
   x.accounts=Array.isArray(x.accounts)?x.accounts:[];
   x.txns=Array.isArray(x.txns)?x.txns:[];
   x.budgets=x.budgets||{};
+  x.goals=Array.isArray(x.goals)?x.goals:[];
+  x.inst=Array.isArray(x.inst)?x.inst:[];
   x.settings.home=x.settings.home||x.settings.ccy;              // region for the bank catalog
   for(const a of x.accounts)if(!a.ccy)a.ccy=x.settings.ccy;      // accounts made before multi-currency
   return x;
@@ -1385,6 +1470,7 @@ function renderHome(){
   $('#h-recent').innerHTML=recent.length?`<div class="list">${recent.map(txRow).join('')}</div>`
     :emptyHTML('list','No transactions yet','Tap + to log your first one.');
 
+  renderDue();renderHomeGoals();
   const bgt=db.budgets[bkey(now)]||{},sp=catSpend(now);
   const ids=Object.keys(bgt).sort((a,b)=>(sp[b]||0)/bgt[b]-(sp[a]||0)/bgt[a]).slice(0,3);
   $('#h-bgt').innerHTML=ids.length?`<div class="list">${ids.map(id=>budRow(id,bgt[id],sp[id]||0,`go('budget')`)).join('')}</div>`
@@ -1909,6 +1995,8 @@ async function delAcct(){
   db.accounts=db.accounts.filter(x=>x.id!==a.id);
   db.txns=db.txns.filter(t=>t.aid!==a.id&&t.tid!==a.id);
   if(db.planLinks)for(const k in db.planLinks)if(db.planLinks[k]===a.id)delete db.planLinks[k];
+  for(const g of db.goals)if(g.aid===a.id){g.log=[{id:uid(),date:isoDay(new Date()),amt:goalSaved(g)}];g.aid=null;}  // keep the progress it had
+  for(const i of db.inst)if(i.aid===a.id)i.aid=null;
   save();closeSheets();refresh();toast('Account deleted');
 }
 
@@ -2223,6 +2311,16 @@ function planMath(p){
 }
 let planAllocNames=[];
 function renderPlan(){
+  const T={plan:['Allocation planner','My plan'],goals:['Save toward something','Goals'],inst:['Pay over time','Installments']};
+  $('#p-tabs').innerHTML=[['plan','My plan'],['goals','Goals'],['inst','Installments']].map(([k,l])=>`<button class="${ui.pTab===k?'on':''}" onclick="ui.pTab='${k}';renderPlan();window.scrollTo(0,0)">${l}</button>`).join('');
+  [$('#p-eyebrow').textContent,$('#p-title').textContent]=T[ui.pTab];
+  const b=$('#p-edit');
+  if(ui.pTab==='goals'){b.hidden=false;b.innerHTML=ic('plus');b.onclick=()=>openGoal();b.setAttribute('aria-label','Add goal');return renderGoals();}
+  if(ui.pTab==='inst'){b.hidden=false;b.innerHTML=ic('plus');b.onclick=()=>openInst();b.setAttribute('aria-label','Add installment');return renderInst();}
+  b.innerHTML=ic('edit');b.onclick=()=>openPlanner();b.setAttribute('aria-label','Edit plan');
+  renderMyPlan();
+}
+function renderMyPlan(){
   const el=$('#p-body');
   $('#p-edit').hidden=!(db.plan&&db.plan.income);
   if(!db.plan||!db.plan.income){
@@ -2259,7 +2357,7 @@ function renderPlan(){
     <div class="stats">
       <div class="stat"><div class="k">Income</div><div class="v">${fm(income)}</div></div>
       <div class="stat"><div class="k">Fixed</div><div class="v">${fm(cmts)}</div></div>
-      <div class="stat wide"><div class="k">Unallocated</div><div class="v ${remaining>=0?'pos':'neg'}">${remaining<0?'−':''}${fm(remaining)}</div></div>
+      <div class="stat wide"><div class="k">Unallocated</div><div class="v ${r2(remaining)>=0?'pos':'neg'}">${r2(remaining)<0?'−':''}${fm(r2(remaining))}</div></div>
     </div>
     <div class="card pad" style="margin-top:12px"><div class="score">
       ${ring([{v:score/10,c:rc}],72,8,score.toFixed(1))}
@@ -2296,6 +2394,250 @@ function depositAlloc(i){
   const m=[[/sav|emerg|fund/i,'other_i'],[/invest|stock|etf/i,'returns'],[/freelan/i,'freelance'],[/business/i,'business'],[/salary|wage/i,'salary']].find(([r])=>r.test(name));
   openTxn(null,{type:'income',cat:m?m[1]:'other_i',aid,amt:a.amount,note:name+' deposit'});
 }
+
+// ══════════════════════════════════
+// GOALS & INSTALLMENTS  (amounts live in the app currency, like budgets & the plan)
+// ══════════════════════════════════
+const GOAL_ICONS=['coins','shield','plane','home','car','laptop','phone','gift','heart','book','bag','sparkle'];
+const INST_ICONS=['phone','laptop','car','home','card','bag','zap','heart','book','briefcase','store','more'];
+const DAY=864e5;
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+function addMonthsKeepDay(iso,k){const d=parseDay(iso),y=d.getFullYear(),m=d.getMonth()+k,last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(d.getDate(),last));}
+const shortDay=d=>d.toLocaleDateString(loc(),{month:'short',day:'numeric',...(d.getFullYear()!==new Date().getFullYear()?{year:'numeric'}:{})});
+const shortMonth=d=>d.toLocaleDateString(loc(),{month:'short',year:'numeric'});
+function icPick(el,list,sel,fn){$(el).innerHTML=list.map(n=>`<button class="${n===sel?'on':''}" onclick="${fn}('${n}')" aria-label="${n}">${ic(n)}</button>`).join('');}
+
+// ── Goals ──
+function goalSaved(g){
+  if(g.aid&&acct(g.aid))return Math.max(0,r2(acctBalD(g.aid)));
+  return Math.max(0,sumC((g.log||[]).map(l=>l.amt)));
+}
+function goalMath(g){
+  const saved=goalSaved(g),target=num(g.target),left=Math.max(0,r2(target-saved)),pct=target>0?Math.min(100,saved/target*100):0;
+  let per=null,months=null,late=false;
+  if(g.date&&left>0){const end=parseDay(g.date),t=today0();
+    if(end<t)late=true;
+    else{months=Math.max(1,(end.getFullYear()-t.getFullYear())*12+end.getMonth()-t.getMonth()+(end.getDate()>=t.getDate()?0:-1));per=r2(left/months);}}
+  return{saved,target,left,pct,per,months,late,done:target>0&&saved>=target};
+}
+function renderGoals(){
+  const el=$('#p-body'),G=db.goals;
+  if(!G.length){el.innerHTML=emptyHTML('target','No goals yet','Saving for a trip, a gadget or an emergency fund? Add a target and cove tracks how close you are and how much to set aside each month.',`<button class="btn" onclick="openGoal()">${ic('plus')}Add a goal</button>`);return;}
+  const M=G.map(goalMath),saved=sumC(M.map(m=>Math.min(m.saved,m.target))),target=sumC(M.map(m=>m.target)),pct=target>0?saved/target*100:0;
+  const monthly=sumC(M.map(m=>m.per||0)),done=M.filter(m=>m.done).length;
+  el.innerHTML=`
+    <div class="hero plan">
+      <div class="lbl">Saved toward your goals</div>
+      <div class="amt">${fm(saved)}</div>
+      <div class="sub">of ${fm(target)} · ${G.length} goal${G.length>1?'s':''}${done?` · ${done} reached 🎉`:''}</div>
+      <div class="hbar"><i style="width:${pct.toFixed(2)}%"></i></div>
+      <div class="hrow"><span>${pct.toFixed(1)}% there</span><span>${monthly>0?`Set aside ${fm(monthly)}/mo`:''}</span></div>
+    </div>
+    <div class="sec"><h2>Your goals</h2><button class="link" onclick="openGoal()">Add</button></div>
+    <div class="list">${G.map((g,i)=>{const m=M[i],a=g.aid?acct(g.aid):null,color=PLAN_COLORS[i%PLAN_COLORS.length];
+      const sub=m.done?'Goal reached 🎉':m.late?`Target date passed · ${fm(m.left)} to go`:m.per!=null?`${fm(m.per)}/mo to reach it by ${shortMonth(parseDay(g.date))}`:`${fm(m.left)} to go`;
+      return`<div class="alloc gi ${m.done?'done':''}">
+        <div class="row" onclick="openGoal('${g.id}')" style="cursor:pointer"><span class="ico" style="--c:${color}">${ic(g.icon||'coins')}</span>
+          <span style="flex:1;min-width:0"><div class="t">${esc(g.name)}</div><div class="s">${sub}</div></span>
+          <span class="a">${fm(m.saved)}<div class="s" style="text-align:right">of ${fm(m.target)}</div></span></div>
+        <div class="bar"><i style="--c:${color}" data-w="${m.pct}"></i></div>
+        <div class="acts">${a?`${logo(a,26)}<span class="grow">Tracking ${esc(a.name)}</span>`:`<span class="grow">${m.pct.toFixed(1)}% saved</span>`}
+          ${a?'':`<button class="btn ghost sm" onclick="openGoalMove('${g.id}','out')">Withdraw</button><button class="btn sm" onclick="openGoalMove('${g.id}','in')">${ic('plus')}Add</button>`}</div>
+      </div>`;}).join('')}</div>`;
+  animateBars();
+}
+function openGoal(id){
+  const g=id?db.goals.find(x=>x.id===id):null;
+  ui.gl={id:g?.id||null,icon:g?.icon||'coins',aid:g?.aid||null,iconSet:!!g};
+  $('#gl-more').hidden=true;$('#gl-more-btn').classList.remove('open');
+  $('#gl-title').textContent=g?'Edit goal':'New goal';
+  $('#gl-name').value=g?g.name:'';$('#gl-target').value=g?g.target:'';$('#gl-date').value=g?.date||'';
+  $('#gl-start').value='';$('#gl-start-fld').hidden=!!g;$('#gl-del').hidden=!g;
+  syncSym();glRender();openSheet('sh-goal');
+}
+function glRender(){
+  icPick('#gl-icons',GOAL_ICONS,ui.gl.icon,'glIcon');
+  $('#gl-src').innerHTML=`<button class="chip txt ${!ui.gl.aid?'on':''}" onclick="glSrc(null)">Add money manually</button>`+db.accounts.filter(a=>!isDebt(a.type)).map(a=>`<button class="chip ${ui.gl.aid===a.id?'on':''}" onclick="glSrc('${a.id}')">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div><small>${fmc(acctBal(a.id),acctCur(a))}</small></span></button>`).join('');
+  $('#gl-src-hint').textContent=ui.gl.aid?'Progress follows this account\'s balance automatically — nothing to update.':'Tap Add on the goal whenever you set money aside. It only keeps count; your account balances don\'t change.';
+  $('#gl-start-fld').hidden=!!ui.gl.id||!!ui.gl.aid;
+  glHint();
+}
+function glIcon(n){ui.gl.icon=n;ui.gl.iconSet=true;icPick('#gl-icons',GOAL_ICONS,n,'glIcon');}
+function glAutoIcon(){if(ui.gl.iconSet)return;ui.gl.icon=guessIcon($('#gl-name').value,GOAL_GUESS,'coins');icPick('#gl-icons',GOAL_ICONS,ui.gl.icon,'glIcon');}
+function glMore(){const m=$('#gl-more');m.hidden=!m.hidden;$('#gl-more-btn').classList.toggle('open',!m.hidden);}
+function gmLink(){const id=ui.gm.id;closeSheets();setTimeout(()=>{openGoal(id);setTimeout(()=>$('#gl-src').scrollIntoView({block:'center',behavior:'smooth'}),350);},250);}
+const GOAL_GUESS=[[/emerg|rainy|safety/,'shield'],[/trip|travel|japan|korea|vacat|holiday|flight|tour|bora|palawan|europe/,'plane'],[/house|home|condo|lot|down ?pay|rent/,'home'],[/car|moto|bike|vehicle/,'car'],[/laptop|macbook|computer|pc\b|ipad|tablet/,'laptop'],[/phone|iphone|samsung|pixel/,'phone'],[/wedding|gift|christmas|birthday|anniv/,'gift'],[/school|tuition|educ|course|review/,'book'],[/health|hospital|surgery|dental|baby/,'heart'],[/bag|shoes|clothes|watch/,'bag']];
+const INST_GUESS=[[/phone|iphone|samsung|pixel|oppo|vivo|xiaomi/,'phone'],[/laptop|macbook|computer|pc\b|ipad|tablet|console|ps5|switch/,'laptop'],[/car|moto|motor|bike|vehicle|auto loan|nmax|click|aerox/,'car'],[/house|home|condo|ref|fridge|aircon|tv|washer|appliance|furniture|sofa|pag-?ibig|housing/,'home'],[/card|credit|bnpl|spaylater|ggives|billease|atome/,'card'],[/school|tuition|educ/,'book'],[/hospital|health|dental|medical/,'heart'],[/business|loan|sss|salary/,'briefcase'],[/shop|lazada|shopee|clothes|bag/,'bag']];
+function guessIcon(name,map,fallback){const n=(name||'').toLowerCase();return(map.find(([r])=>r.test(n))||[0,fallback])[1];}
+function glSrc(id){ui.gl.aid=id;glRender();}
+function glHint(){
+  const target=num($('#gl-target').value),date=$('#gl-date').value,h=$('#gl-hint');
+  const saved=ui.gl.aid?Math.max(0,acctBalD(ui.gl.aid)):ui.gl.id?goalSaved(db.goals.find(x=>x.id===ui.gl.id)):num($('#gl-start').value);
+  if(!(target>0)){h.textContent='';return;}
+  const m=goalMath({target,date,aid:ui.gl.aid,log:[{amt:saved}]});
+  h.textContent=m.done?'You already have enough for this one 🎉':m.late?'That date has already passed.':m.per!=null?`Set aside ${fm(m.per)} a month for ${m.months} month${m.months>1?'s':''} to get there.`:`${fm(m.left)} to go. Add a date to see how much to save each month.`;
+}
+function saveGoal(){
+  const name=$('#gl-name').value.trim(),target=r2(num($('#gl-target').value));
+  if(!name)return toast('Name your goal');
+  if(!(target>0))return toast('Enter a target amount');
+  if(!ui.gl.iconSet)ui.gl.icon=guessIcon(name,GOAL_GUESS,'coins');
+  const rec={name,icon:ui.gl.icon,target,date:$('#gl-date').value||null,aid:ui.gl.aid||null};
+  if(ui.gl.id)Object.assign(db.goals.find(x=>x.id===ui.gl.id),rec);
+  else{const st=r2(num($('#gl-start').value));db.goals.push({id:uid(),...rec,log:st>0&&!rec.aid?[{id:uid(),date:isoDay(new Date()),amt:st}]:[]});}
+  save();closeSheets();ui.pTab='goals';go('plan');toast(ui.gl.id?'Goal saved':'Goal added');
+}
+async function delGoal(){
+  const g=db.goals.find(x=>x.id===ui.gl.id);if(!g)return;
+  if(!await ask(`Delete ${g.name}?`,'Your accounts and transactions stay as they are. You can bring it back with Undo.'))return;
+  db.goals=db.goals.filter(x=>x.id!==g.id);save();closeSheets();renderPlan();toast('Goal deleted');
+}
+function openGoalMove(id,dir){
+  const g=db.goals.find(x=>x.id===id);if(!g)return;
+  ui.gm={id,dir};
+  $('#gm-sub').textContent=`${g.name} · ${fm(goalSaved(g))} saved`;
+  $('#gm-amt').value='';$('#gm-date').value=isoDay(new Date());
+  syncSym();gmRender();openSheet('sh-gmove');
+  if(matchMedia('(pointer:fine)').matches)setTimeout(()=>$('#gm-amt').focus(),320);
+}
+function gmRender(){
+  $('#gm-types').innerHTML=[['in','Add money'],['out','Withdraw']].map(([k,l])=>`<button class="${ui.gm.dir===k?'on':''}" onclick="ui.gm.dir='${k}';gmRender()">${l}</button>`).join('');
+  $('#gm-title').textContent=ui.gm.dir==='in'?'Add money':'Withdraw';$('#gm-save').textContent=ui.gm.dir==='in'?'Add to goal':'Take out';
+}
+function saveGoalMove(){
+  const g=db.goals.find(x=>x.id===ui.gm.id);if(!g)return;
+  let amt=r2(num($('#gm-amt').value));if(!(amt>0))return toast('Enter an amount');
+  if(ui.gm.dir==='out'){const have=goalSaved(g);if(amt>have)return toast(`Only ${fm(have)} is saved in this goal`);amt=-amt;}
+  (g.log=g.log||[]).push({id:uid(),date:$('#gm-date').value||isoDay(new Date()),amt});
+  save();closeSheets();renderPlan();
+  const m=goalMath(g);toast(m.done&&amt>0?`${g.name} reached 🎉`:`${amt>0?'+':'−'}${fm(amt)} · ${m.pct.toFixed(1)}% there`);
+}
+
+// ── Installments ──
+function instMath(i){
+  const months=Math.max(1,Math.round(num(i.months))),paid=Math.min(months,Math.max(0,Math.round(num(i.paid)))),monthly=num(i.monthly);
+  const done=paid>=months,next=done?null:addMonthsKeepDay(i.start,paid),days=next?Math.round((next-today0())/DAY):null;
+  return{months,paid,monthly,done,next,days,total:r2(monthly*months),left:r2(monthly*(months-paid)),end:addMonthsKeepDay(i.start,months-1),pct:paid/months*100};
+}
+const instMonthly=()=>sumC((db.inst||[]).filter(i=>!instMath(i).done).map(i=>num(i.monthly)));
+function dueLabel(m){
+  if(m.done)return['ok','Paid off 🎉'];
+  const d=m.days;
+  if(d<0)return['late',`Overdue ${-d} day${d===-1?'':'s'}`];
+  if(d===0)return['late','Due today'];
+  if(d===1)return['soon','Due tomorrow'];
+  if(d<=7)return['soon',`Due in ${d} days`];
+  return['',`Due ${shortDay(m.next)}`];
+}
+function instRow(i,idx,compact){
+  const m=instMath(i),a=i.aid?acct(i.aid):null,color=PLAN_COLORS[(idx+3)%PLAN_COLORS.length],[cls,lbl]=dueLabel(m);
+  return`<div class="alloc gi ${m.done?'done':''}">
+    <div class="row" onclick="${compact?`ui.pTab='inst';go('plan')`:`openInst('${i.id}')`}" style="cursor:pointer"><span class="ico" style="--c:${color}">${ic(i.icon||'card')}</span>
+      <span style="flex:1;min-width:0"><div class="t">${esc(i.name)}</div><div class="s">${fm(m.monthly)}/mo · ${m.done?'all paid':m.paid?`${m.paid} of ${m.months} paid`:`${m.months-m.paid} payment${m.months-m.paid>1?'s':''} left`}</div></span>
+      <span class="a">${fm(m.left)}<div class="s" style="text-align:right">left</div></span></div>
+    ${compact?'':`<div class="bar"><i style="--c:${color}" data-w="${m.pct}"></i></div>`}
+    <div class="acts"><span class="due ${cls}">${lbl}</span><span class="grow">${m.done?'':a?`from ${esc(a.name)}`:''}</span>
+      ${m.done?'':`<button class="btn sm" onclick="payInst('${i.id}')">Pay ${fm(m.monthly)}</button>`}</div>
+  </div>`;
+}
+function renderInst(){
+  const el=$('#p-body'),L=db.inst;
+  if(!L.length){el.innerHTML=emptyHTML('card','No installments yet','Add 0% gadget plans, loans or anything you pay monthly for a set number of months. cove shows what\'s left, when it\'s due and when you\'ll be done.',`<button class="btn" onclick="openInst()">${ic('plus')}Add an installment</button>`);return;}
+  const order=L.map((i,k)=>({i,k,m:instMath(i)})).sort((a,b)=>(a.m.done-b.m.done)||((a.m.next||0)-(b.m.next||0)));
+  const act=order.filter(x=>!x.m.done),monthly=sumC(act.map(x=>x.m.monthly)),left=sumC(act.map(x=>x.m.left)),total=sumC(act.map(x=>x.m.total));
+  const last=act.length?new Date(Math.max(...act.map(x=>x.m.end))):null,nx=act[0];
+  el.innerHTML=`
+    <div class="hero plan">
+      <div class="lbl">Monthly installments</div>
+      <div class="amt">${fm(monthly)}</div>
+      <div class="sub">${act.length?`${fm(left)} left to pay · ${act.length} active`:'Everything is paid off 🎉'}</div>
+      ${act.length?`<div class="hbar"><i style="width:${total>0?((1-left/total)*100).toFixed(2):0}%"></i></div>
+      <div class="hrow"><span>Next due ${shortDay(nx.m.next)}</span><span>All paid by ${shortMonth(last)}</span></div>`:''}
+    </div>
+    ${act.length&&db.plan&&db.plan.income&&!(db.plan.commitments||[]).some(c=>/install/i.test(c.name))?`<button class="dashed" style="margin-top:12px" onclick="openPlanner(2)">${ic('target')}Add ${fm(monthly)} to your plan's fixed expenses</button>`:''}
+    <div class="sec"><h2>Your installments</h2><button class="link" onclick="openInst()">Add</button></div>
+    <div class="list">${order.map(x=>instRow(x.i,x.k)).join('')}</div>`;
+  animateBars();
+}
+function renderHomeGoals(){
+  const el=$('#h-goals'),G=db.goals||[];
+  if(!G.length){el.innerHTML=`<div class="sec"><h2>Goals</h2></div><button class="dashed" onclick="ui.pTab='goals';go('plan');openGoal()">${ic('target')}Set a savings goal</button>`;return;}
+  const top=G.map((g,k)=>({g,k,m:goalMath(g)})).sort((a,b)=>(a.m.done-b.m.done)||(b.m.pct-a.m.pct)).slice(0,2);
+  el.innerHTML=`<div class="sec"><h2>Goals</h2><button class="link" onclick="ui.pTab='goals';go('plan')">See all${G.length>2?` ${G.length}`:''}</button></div>
+    <div class="list">${top.map(({g,k,m})=>{const color=PLAN_COLORS[k%PLAN_COLORS.length];return`<button class="bud" onclick="ui.pTab='goals';go('plan')">
+      <div class="row"><span class="ico" style="--c:${color}">${ic(g.icon||'coins')}</span><span class="m"><div class="t">${esc(g.name)}</div><div class="s">${m.done?'Reached 🎉':`${m.pct.toFixed(1)}% · ${fm(m.left)} to go`}</div></span>
+      <span class="r"><div class="a">${fm(m.saved)}</div><div class="s">of ${fm(m.target)}</div></span></div>
+      <div class="bar"><i style="--c:${color}" data-w="${m.pct}"></i></div></button>`;}).join('')}</div>`;
+}
+function renderDue(){
+  const due=(db.inst||[]).map((i,k)=>({i,k,m:instMath(i)})).filter(x=>!x.m.done&&x.m.days<=7).sort((a,b)=>a.m.next-b.m.next);
+  $('#h-due').innerHTML=due.length?`<div class="sec"><h2>Due soon</h2><button class="link" onclick="ui.pTab='inst';go('plan')">Installments</button></div><div class="list">${due.map(x=>instRow(x.i,x.k,true)).join('')}</div>`:'';
+}
+function openInst(id){
+  const i=id?db.inst.find(x=>x.id===id):null,m=i?instMath(i):null;
+  const nm=new Date();nm.setMonth(nm.getMonth()+1);
+  ui.ins={id:i?.id||null,icon:i?.icon||'card',iconSet:!!i,aid:i?i.aid:(db.accounts.find(a=>a.type!=='invest')?.id||null)};
+  $('#in-title').textContent=i?'Edit installment':'New installment';
+  $('#in-name').value=i?i.name:'';$('#in-amt').value=i?i.monthly:'';
+  $('#in-left').value=i?m.months-m.paid:'';
+  $('#in-next').value=i?isoDay(m.next||addMonthsKeepDay(i.start,m.months)):isoDay(nm);
+  $('#in-total').value=i&&m.paid>0?m.months:'';
+  $('#in-del').hidden=!i;
+  const more=!!(i&&m.paid>0);$('#in-more').hidden=!more;$('#in-more-btn').classList.toggle('open',more);
+  syncSym();inRender();openSheet('sh-inst');
+}
+function inRender(){
+  icPick('#in-icons',INST_ICONS,ui.ins.icon,'inIcon');
+  inRenderLeft();
+  $('#in-from').innerHTML=db.accounts.map(a=>`<button class="chip ${ui.ins.aid===a.id?'on':''}" onclick="inFrom('${a.id}')">${logo(a,28)}<span class="tx2"><div>${esc(a.name)}</div><small>${fmc(acctBal(a.id),acctCur(a))}</small></span></button>`).join('')+`<button class="chip txt ${!ui.ins.aid?'on':''}" onclick="inFrom(null)">Don't log payments</button>`;
+  inHint();
+}
+function inRenderLeft(){const v=Math.round(num($('#in-left').value));$('#in-left-chips').innerHTML=[3,6,12,18,24,36].map(n=>`<button class="chip txt ${v===n?'on':''}" onclick="$('#in-left').value=${n};inRenderLeft();inHint()">${n}</button>`).join('');}
+function inIcon(n){ui.ins.icon=n;ui.ins.iconSet=true;icPick('#in-icons',INST_ICONS,n,'inIcon');}
+function inAutoIcon(){if(ui.ins.iconSet)return;ui.ins.icon=guessIcon($('#in-name').value,INST_GUESS,'card');icPick('#in-icons',INST_ICONS,ui.ins.icon,'inIcon');}
+function inMore(){const m=$('#in-more');m.hidden=!m.hidden;$('#in-more-btn').classList.toggle('open',!m.hidden);}
+function inFrom(id){ui.ins.aid=id;inRender();}
+// The form asks what people know (payments left + next date); store it as a schedule (start, months, paid)
+function inForm(){
+  const monthly=r2(num($('#in-amt').value)),left=Math.round(num($('#in-left').value)),next=$('#in-next').value;
+  const tot=Math.round(num($('#in-total').value)),months=Math.max(left,tot||0),paid=months-left;
+  return{monthly,left,next,months,paid,tot,start:next?isoDay(addMonthsKeepDay(next,-paid)):null};
+}
+function inHint(){
+  const f=inForm(),h=$('#in-hint'),a=ui.ins.aid?acct(ui.ins.aid):null;
+  if(!(f.monthly>0&&f.left>=0&&f.next&&f.months>0)){h.textContent=a?`When you tap Pay, it's logged in Activity as an expense from ${a.name}.`:'';return;}
+  const m=instMath(f);
+  h.textContent=(m.done?'Already paid off.':`${fm(m.left)} left to pay · last payment ${shortDay(m.end)}.`)+(a?` Each Pay is logged as an expense from ${a.name}.`:'');
+}
+function saveInst(){
+  const name=$('#in-name').value.trim(),f=inForm();
+  if(!name)return toast('What are you paying for?');
+  if(!(f.monthly>0))return toast('Enter the monthly payment');
+  if(!(f.left>0)&&!ui.ins.id)return toast('How many payments are left?');
+  if(f.tot&&f.tot<f.left)return toast('Total months can\'t be less than payments left');
+  if(!f.next)return toast('Pick the next payment date');
+  if(!ui.ins.iconSet)ui.ins.icon=guessIcon(name,INST_GUESS,'card');
+  const rec={name,icon:ui.ins.icon,monthly:f.monthly,months:f.months,paid:f.paid,start:f.start,aid:ui.ins.aid||null};
+  if(!(rec.months>0))return toast('How many payments are left?');
+  if(ui.ins.id)Object.assign(db.inst.find(x=>x.id===ui.ins.id),rec);else db.inst.push({id:uid(),...rec});
+  save();closeSheets();ui.pTab='inst';go('plan');toast(ui.ins.id?'Saved':'Installment added');
+}
+async function delInst(){
+  const i=db.inst.find(x=>x.id===ui.ins.id);if(!i)return;
+  if(!await ask(`Delete ${i.name}?`,'Payments already logged stay in Activity. You can bring it back with Undo.'))return;
+  db.inst=db.inst.filter(x=>x.id!==i.id);save();closeSheets();renderPlan();toast('Installment deleted');
+}
+async function payInst(id){
+  const i=db.inst.find(x=>x.id===id);if(!i)return;
+  const m=instMath(i),a=i.aid?acct(i.aid):null,n=m.paid+1;
+  if(m.done)return;
+  if(!await ask(`Pay ${i.name}?`,`Payment ${n} of ${m.months}: ${fm(m.monthly)}${a?`, added to Activity as an expense from ${a.name}`:''}.`,'Pay','Cancel',false))return;
+  if(a){const cur=acctCur(a),amt=cur===disp()?m.monthly:r2(conv(m.monthly,disp(),cur)??m.monthly);
+    db.txns.push({id:uid(),amt,type:'expense',cid:'installments',aid:a.id,tid:null,date:isoDay(new Date()),note:`${i.name} (${n}/${m.months})`,cur,ts:Date.now()});}
+  i.paid=n;save();buzz();refresh();
+  toast(n>=m.months?`${i.name} is paid off 🎉`:`Payment ${n} of ${m.months} done`);
+}
+function plAddInst(){pl.cmts.push({name:'Installments',value:String(instMonthly()),type:FIXED});plRender('cmts');plLive?.();}
 
 // ── Planner wizard ──
 const pl={step:1,cmts:[],allocs:[]};
@@ -2346,13 +2688,14 @@ function plRender(kind){
     <button class="x" onclick="pl.${kind}.splice(${i},1);plRender('${kind}');plLive()" aria-label="Remove">${ic('x')}</button>
   </div>`).join('');
   const sugg=kind==='cmts'?CMT_SUGG:ALLOC_SUGG;
-  $(`#pl-${kind==='cmts'?'cmt':'alloc'}-sugg`).innerHTML=sugg.filter(s=>!used.has(s.toLowerCase())).map(s=>`<button class="chip txt" onclick="plAdd('${kind}','${s}')">+ ${s}</button>`).join('')+(kind==='allocs'&&!list.some(x=>x.type===REST)?`<button class="chip txt" onclick="plAddRest()">+ Whatever is left</button>`:'');
+  const im=instMonthly();
+  $(`#pl-${kind==='cmts'?'cmt':'alloc'}-sugg`).innerHTML=(kind==='cmts'&&im>0&&!used.has('installments')?`<button class="chip txt on" onclick="plAddInst()">+ Installments ${fm(im)}</button>`:'')+sugg.filter(s=>!used.has(s.toLowerCase())).map(s=>`<button class="chip txt" onclick="plAdd('${kind}','${s}')">+ ${s}</button>`).join('')+(kind==='allocs'&&!list.some(x=>x.type===REST)?`<button class="chip txt" onclick="plAddRest()">+ Whatever is left</button>`:'');
   fmtMoneyInputs($(`#pl-${kind}`));
 }
 function plLive(){
   if(pl.step!==3)return;
   const m=planMath({income:$('#pl-income').value,commitments:pl.cmts,allocations:pl.allocs});
-  $('#pl-live').innerHTML=`<span>Available ${fm(m.available)}</span><span class="${m.remaining<0?'neg':''}">${m.remaining<0?'Over by '+fm(-m.remaining):'Left '+fm(m.remaining)}</span>`;
+  $('#pl-live').innerHTML=`<span>Available ${fm(m.available)}</span><span class="${r2(m.remaining)<0?'neg':''}">${r2(m.remaining)<0?'Over by '+fm(-m.remaining):'Left '+fm(m.remaining)}</span>`;
 }
 function plTemplate(t){
   const T={
@@ -2383,6 +2726,8 @@ async function changeCcy(code){
   const cv=v=>Math.round(num(v)*r*100)/100;
   for(const k in db.budgets)for(const c in db.budgets[k])db.budgets[k][c]=cv(db.budgets[k][c]);  // budgets & plan live in the app currency
   if(db.plan){db.plan.income=cv(db.plan.income);for(const x of[...(db.plan.commitments||[]),...(db.plan.allocations||[])])if(x.type===FIXED)x.value=String(cv(x.value));}
+  for(const g of db.goals){g.target=cv(g.target);for(const l of g.log||[])l.amt=cv(l.amt);}
+  for(const i of db.inst)i.monthly=cv(i.monthly);
   setCcy(code);save();syncSym();renderSettings();render();
   toast(`Showing everything in ${code} · $1 = ${fm(conv(1,'USD',code)??1)}`);
 }
@@ -2815,6 +3160,16 @@ function makeDemoData(){
     plan:{income:65000,commitments:[{name:'Rent',value:'14000',type:FIXED},{name:'Internet',value:'1699',type:FIXED},{name:'Utilities',value:'3000',type:FIXED}],
       allocations:[{name:'Emergency Fund',value:'10',type:PCT},{name:'Investing',value:'5000',type:FIXED},{name:'Travel',value:'5',type:PCT},{name:'Lifestyle',value:'',type:REST}]},
     planLinks:{'Emergency Fund':'maya','Investing':'inv'},
+    goals:[
+      {id:'g_japan',name:'Japan trip',icon:'plane',target:85000,date:isoDay(new Date(today.getFullYear(),today.getMonth()+7,1)),aid:null,log:[{id:'gl1',date:isoDay(new Date(today.getFullYear(),today.getMonth()-3,16)),amt:15000},{id:'gl2',date:isoDay(new Date(today.getFullYear(),today.getMonth()-1,16)),amt:12500}]},
+      {id:'g_ef',name:'Emergency fund',icon:'shield',target:100000,date:null,aid:'maya',log:[]},
+      {id:'g_laptop',name:'New laptop',icon:'laptop',target:72990,date:isoDay(new Date(today.getFullYear(),today.getMonth()+4,30)),aid:null,log:[{id:'gl3',date:isoDay(new Date(today.getFullYear(),today.getMonth()-2,1)),amt:21000}]},
+    ],
+    inst:[
+      {id:'i_phone',name:'iPhone 16 · 0% plan',icon:'phone',monthly:3332.92,months:24,paid:7,start:isoDay(new Date(today.getFullYear(),today.getMonth()-7,today.getDate()+3)),aid:'bdocc'},
+      {id:'i_ref',name:'Ref · Home Credit',icon:'home',monthly:2150,months:12,paid:10,start:isoDay(new Date(today.getFullYear(),today.getMonth()-10,22)),aid:'gcash'},
+      {id:'i_moto',name:'Motorcycle loan',icon:'car',monthly:4850,months:36,paid:13,start:isoDay(new Date(today.getFullYear(),today.getMonth()-13,28)),aid:'bpi'},
+    ],
     stocks:[open('NVDA','US',3,128.4),open('AAPL','US',2,201.5),open('VOO','US',0.5,512),open('JFC','PH',50,238,{px:{c:246.4,at:Date.now()}})],
   };
 }
