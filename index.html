@@ -353,6 +353,20 @@ svg text{font-family:var(--font)}
 .intc .t{font-size:12px;font-weight:700;color:var(--muted)}
 .intc .v{font-size:17px;font-weight:800;letter-spacing:-.03em}
 .intc .s{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.4}
+.pm{padding:16px}
+.pm .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pm .hd b{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.pm .hd span{font-size:12px;font-weight:700;color:var(--muted)}
+.pm .big{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-top:8px}
+.pm .big small{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.pm .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pm .rows>div{background:var(--s2);border-radius:12px;padding:9px 11px;min-width:0}
+.pm .rows .k{font-size:11.5px;font-weight:700;color:var(--muted)}
+.pm .rows .v{font-size:14px;font-weight:800;letter-spacing:-.02em;margin-top:1px}
+.pm .inc{margin-top:10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.pm .inc button{display:flex;justify-content:space-between;width:100%;padding:5px 0;text-align:left}
+.pm .inc b{color:var(--pos);font-weight:800}
+.ready{color:var(--pos);font-weight:700}
 .jwarn{font-size:12px;font-weight:700;color:var(--warn);margin:6px 2px 0}
 .moreopt{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:13.5px;font-weight:700;color:var(--acc)}
 .moreopt svg.i{width:16px;height:16px;transition:transform .2s}
@@ -738,6 +752,7 @@ body.demo .demo-only{display:inline}
   <div class="amtin"><span id="tx-sym">₱</span><input id="tx-amt" type="text" inputmode="decimal" placeholder="0" autocomplete="off" aria-label="Amount" oninput="txAmtInput()"></div>
   <div class="chips wrap" id="tx-curs" style="margin-top:10px"></div>
   <div class="fld" id="tx-cat-fld"><span class="lbl">Category</span><div class="cats" id="tx-cats"></div></div>
+  <label class="tog" id="tx-plan-fld" hidden><input type="checkbox" id="tx-plan" onchange="ui.tx.planTouched=true;txPlanHint()"><span>Count toward this month's plan</span></label><div class="tog-hint" id="tx-plan-hint"></div>
   <div class="fld"><span class="lbl" id="tx-from-lbl">Account</span><div class="chips" id="tx-from"></div></div>
   <div class="fld" id="tx-jar-fld" hidden><span class="lbl" id="tx-jar-lbl">From a jar?</span><div class="chips wrap" id="tx-jars"></div><div class="tog-hint" id="tx-jar-hint"></div></div>
   <div class="fld" id="tx-to-fld"><span class="lbl">To</span><div class="chips" id="tx-to"></div>
@@ -1898,6 +1913,7 @@ function openTxn(id,preset={}){
   ui.tx=t?{id:t.id,type:t.type,cat:t.type==='transfer'?null:t.cid,aid:t.aid,tid:t.tid||null,cur:txCur(t),tcur:t.tid?txTCur(t):null,tamtTouched:t.tamt!=null}
          :{id:null,type:preset.type||'expense',cat:preset.cat||null,aid:preset.aid||db.accounts[0].id,tid:null,cur:preset.cur||null,tcur:null,tamtTouched:false,jid:preset.jid||null};
   if(t)ui.tx.jid=t.jid||null;
+  ui.tx.planTouched=!!t;$('#tx-plan').checked=!!(t&&t.plan);
   $('#tx-tamt').value=t&&t.tamt!=null?t.tamt:'';
   if(!t&&preset.tid)ui.tx.tid=preset.tid;
   if(ui.tx.type==='transfer'&&!ui.tx.tid)ui.tx.tid=db.accounts.find(a=>a.id!==ui.tx.aid)?.id||null;
@@ -1932,7 +1948,7 @@ function renderTxForm(){
   $('#tx-cats').innerHTML=allCats(x.type).map(c=>`<button class="cat ${x.cat===c.id?'on':''}" style="--c:${c.color}" onclick="ui.tx.cat='${c.id}';renderTxForm()"><span class="ico">${ic(c.icon)}</span>${esc(c.name)}</button>`).join('');
   $('#tx-from-lbl').textContent=x.type==='transfer'?'From':'Account';
   $('#tx-from').innerHTML=acctChips(x.aid,'pickFrom');
-  txJars();
+  txJars();txPlanUI();
   $('#tx-to-fld').hidden=x.type!=='transfer';
   if(x.type==='transfer'){
     $('#tx-to').innerHTML=acctChips(x.tid,'pickTo',fcs.length>1?null:x.aid); // multi-currency accounts can convert between their own pockets
@@ -1943,6 +1959,21 @@ function renderTxForm(){
   }else $('#tx-tamt-fld').hidden=true;
 }
 // Cross-currency transfer: show "they receive" pre-filled at today's rate (editable)
+// Income can count toward this month's plan (resets every month)
+const PLAN_CATS=['salary','freelance','business'];
+function txPlanUI(){
+  const x=ui.tx,show=x.type==='income'&&!!(db.plan&&db.plan.income)&&x.cat!=='interest';
+  $('#tx-plan-fld').hidden=!show;
+  if(!show){$('#tx-plan-hint').textContent='';return;}
+  if(!x.planTouched)$('#tx-plan').checked=PLAN_CATS.includes(x.cat);
+  txPlanHint();
+}
+function txPlanHint(){
+  const h=$('#tx-plan-hint');if($('#tx-plan-fld').hidden||!$('#tx-plan').checked){h.textContent='';return;}
+  const x=ui.tx,d=$('#tx-date').value?parseDay($('#tx-date').value):new Date(),pm=planMonth(d,x.id);
+  const add=r2(toD(num($('#tx-amt').value)-num($('#tx-fee').value),x.cur||disp())??0);
+  h.textContent=`${monthLabel(d)} plan: ${fm(pm.received)} → ${fm(r2(pm.received+Math.max(0,add)))} of ${fm(pm.income)}`;
+}
 // Pay from (or put into) a jar inside the chosen account
 function txJars(){
   const x=ui.tx,a=acct(x.aid),J=a&&!isDebt(a.type)&&a.type!=='invest'?(a.jars||[]):[],ok=J.length&&x.cur===acctCur(a);
@@ -1962,7 +1993,7 @@ function txJarHint(){
   h.classList.toggle('warn',after<0);
   h.textContent=after<0?`${j.name} only has ${fmc(have,c)} — it would go ${fmc(-after,c)} short.`:`${j.name} jar: ${fmc(have,c)} → ${fmc(after,c)}`;
 }
-function txFeeHint(){txJarHint();
+function txFeeHint(){txJarHint();txPlanHint?.();
   const x=ui.tx,amt=num($('#tx-amt').value),fee=num($('#tx-fee').value),h=$('#tx-fee-hint'),a=acct(x.aid);
   if(!(fee>0)){h.textContent='';return;}
   const m=v=>fmc(r2(v),x.cur),nm=a?a.name:'the account';
@@ -1992,7 +2023,8 @@ function saveTxn(){
   const date=$('#tx-date').value||isoDay(new Date());
   const rec={amt,type:x.type,cid:x.type==='transfer'?'other_e':x.cat,aid:x.aid,tid:x.type==='transfer'?x.tid:null,date,note:$('#tx-note').value.trim(),
     cur:x.cur,tcur:x.type==='transfer'?x.tcur:undefined,tamt,fee:r2(num($('#tx-fee').value))||undefined,
-    jid:x.jid&&findJar(x.aid,x.jid)&&x.cur===acctCur(acct(x.aid))?x.jid:undefined};
+    jid:x.jid&&findJar(x.aid,x.jid)&&x.cur===acctCur(acct(x.aid))?x.jid:undefined,
+    plan:x.type==='income'&&!$('#tx-plan-fld').hidden&&$('#tx-plan').checked?true:undefined};
   if(x.id){Object.assign(db.txns.find(t=>t.id===x.id),rec);toast('Saved');}
   else{db.txns.push({id:uid(),...rec,ts:Date.now()});toast(`${x.type==='income'?'+':x.type==='expense'?'−':''}${fmc(amt,x.cur)} added`);}
   save();buzz();
@@ -2424,7 +2456,7 @@ function renderMyPlan(){
   const pos=allocs.filter(a=>a.amount>0),dt=sumC(pos.map(a=>a.amount));
   const sorted=allocs.map((a,i)=>({...a,i})).sort((a,b)=>b.amount-a.amount);
   planAllocNames=allocs.map(a=>a.name);
-  const links=db.planLinks||{};
+  const links=db.planLinks||{},pmr=planMonth();
 
   el.innerHTML=`
     <div class="hero plan">
@@ -2441,6 +2473,7 @@ function renderMyPlan(){
       <div class="stat"><div class="k">Fixed</div><div class="v">${fm(cmts)}</div></div>
       <div class="stat wide"><div class="k">Unallocated</div><div class="v ${r2(remaining)>=0?'pos':'neg'}">${r2(remaining)<0?'−':''}${fm(r2(remaining))}</div></div>
     </div>
+    ${planMonthCard()}
     <div class="card pad" style="margin-top:12px"><div class="score">
       ${ring([{v:score/10,c:rc}],72,8,score.toFixed(1))}
       <div><div class="rt" style="color:${rc}">${rating}</div><div class="ds">${desc}</div></div>
@@ -2459,7 +2492,7 @@ function renderMyPlan(){
         :`<button class="linkbtn" onclick="this.nextElementSibling.classList.toggle('open')">${ic('link')}Link to an account</button>
           <div class="picker">${db.accounts.length?db.accounts.map(x=>`<button class="chip" onclick="linkAlloc(${a.i},'${x.id}')">${logo(x,28)}<span class="tx2"><div>${esc(x.name)}</div><small>${fmc(acctBal(x.id),acctCur(x))}</small></span></button>`).join(''):'<span class="mut" style="font-size:13px">Add an account on Home first.</span>'}</div>`;
       return`<div class="alloc"><div class="row"><span class="ico" style="--c:${a.color}">${ic(planIcon(a.name))}</span>
-        <span style="flex:1;min-width:0"><div class="t">${esc(a.name)}</div><div class="s">${a.rest?'Whatever is left · ':''}${pct.toFixed(1)}% of available</div></span>
+        <span style="flex:1;min-width:0"><div class="t">${esc(a.name)}</div><div class="s">${a.rest?'Whatever is left · ':''}${pmr.received>0?`<span class="ready">${fm(pmr.ready[a.i])} ready</span> this month`:`${pct.toFixed(1)}% of available`}</div></span>
         <span class="a">${fm(a.amount)}</span></div>
         <div class="bar"><i style="--c:${a.color}" data-w="${pct}"></i></div>${linkUI}</div>`;
     }).join('')}</div>`:`<button class="dashed" onclick="openPlanner(3)">${ic('plus')}Add allocations</button>`}
@@ -2468,13 +2501,43 @@ function renderMyPlan(){
   `;
   animateBars();
 }
+// This month's plan: income tagged "count toward plan" in the month. Bills are covered first,
+// then what's left is shared across allocations in the same proportions as the plan.
+function planMonth(d=new Date(),skipTx=null){
+  const p=db.plan||{},M=planMath(p),ym=isoDay(d).slice(0,7);
+  const T=db.txns.filter(t=>t.plan&&t.type==='income'&&t.date.slice(0,7)===ym&&t.id!==skipTx);
+  const received=sumC(T.map(t=>r2(toD(r2(t.amt-(t.fee||0)),txCur(t))??0)));
+  const billsCovered=Math.min(M.cmts,received),forAllocs=Math.max(0,r2(received-M.cmts));
+  const share=M.available>0?Math.min(1,forAllocs/M.available):0;
+  const ready=M.allocs.map(a=>r2(a.amount*share));
+  if(ready.length){const want=r2(sumC(M.allocs.map(a=>a.amount))*share),diff=r2(want-sumC(ready));   // rounding leftovers go to the biggest, so it adds up to the centavo
+    if(diff){const k=ready.indexOf(Math.max(...ready));ready[k]=r2(ready[k]+diff);}}
+  return{...M,T,received,billsCovered,forAllocs,share,ready,toCome:Math.max(0,r2(M.income-received)),extra:Math.max(0,r2(received-M.income))};
+}
+function planMonthCard(){
+  const now=new Date(),pm=planMonth(now),pct=pm.income>0?Math.min(100,pm.received/pm.income*100):0;
+  const next=new Date(now.getFullYear(),now.getMonth()+1,1);
+  return`<div class="card pm" style="margin-top:12px">
+    <div class="hd"><b>${now.toLocaleDateString(loc(),{month:'long'})} so far</b><span>Resets ${next.toLocaleDateString(loc(),{month:'short',day:'numeric'})}</span></div>
+    <div class="big">${fm(pm.received)} <small>of ${fm(pm.income)} received</small></div>
+    <div class="bar"><i style="--c:var(--pos)" data-w="${pct}"></i></div>
+    <div class="rows">
+      <div><div class="k">Bills covered</div><div class="v ${pm.cmts>0&&pm.billsCovered>=pm.cmts?'pos':''}">${pm.cmts>0&&pm.billsCovered>=pm.cmts?`${fm(pm.cmts)} ✓`:`${fm(pm.billsCovered)} of ${fm(pm.cmts)}`}</div></div>
+      <div><div class="k">${pm.extra>0?'Extra this month':'Still to come'}</div><div class="v ${pm.extra>0?'pos':''}">${fm(pm.extra>0?pm.extra:pm.toCome)}</div></div>
+    </div>
+    ${pm.T.length?`<div class="inc">${pm.T.slice().sort((a,b)=>a.date<b.date?-1:1).map(t=>`<button onclick="openTxn('${t.id}')"><span>${esc(t.note||cat(t.cid).name)} · ${dayLabel(t.date)}</span><b>+${fm(r2(toD(r2(t.amt-(t.fee||0)),txCur(t))??0))}</b></button>`).join('')}</div>`
+      :`<div class="inc">When income comes in, turn on <b style="color:var(--text)">Count toward this month's plan</b> and it shows up here.</div>`}
+    <button class="btn ghost sm" style="margin-top:12px;width:100%" onclick="openTxn(null,{type:'income',cat:'salary'})">${ic('plus')}Log income for the plan</button>
+  </div>`;
+}
 function linkAlloc(i,aid){db.planLinks=db.planLinks||{};db.planLinks[planAllocNames[i]]=aid;save();renderPlan();toast('Linked');}
 function unlinkAlloc(i){if(db.planLinks)delete db.planLinks[planAllocNames[i]];save();renderPlan();}
 function depositAlloc(i){
   const name=planAllocNames[i],aid=(db.planLinks||{})[name];
   const a=planMath(db.plan).allocs[i];if(!a||!acct(aid))return;
   const m=[[/sav|emerg|fund/i,'other_i'],[/invest|stock|etf/i,'returns'],[/freelan/i,'freelance'],[/business/i,'business'],[/salary|wage/i,'salary']].find(([r])=>r.test(name));
-  openTxn(null,{type:'income',cat:m?m[1]:'other_i',aid,amt:a.amount,note:name+' deposit'});
+  const pm=planMonth(),amt=pm.received>0&&pm.ready[i]>0&&pm.ready[i]<a.amount?pm.ready[i]:a.amount;
+  openTxn(null,{type:'income',cat:m?m[1]:'other_i',aid,amt,note:name+' deposit'});
 }
 
 // ══════════════════════════════════
@@ -3329,7 +3392,7 @@ function makeDemoData(){
   };
   for(let i=95;i>=0;i--){
     const d=new Date(today);d.setDate(d.getDate()-i);const dom=d.getDate(),dow=d.getDay(),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-    if(dom===15||dom===last)T(d,'income',32500,'salary','bpi','Salary');
+    if(dom===15||dom===last)T(d,'income',32500,'salary','bpi','Salary',{plan:true});
     if(dom===10)T(d,'income',350,'freelance','wise','Upwork — logo project',{cur:'USD'});
     if(dom===5)T(d,'expense',14000,'bills','bpi','Rent');
     if(dom===18)T(d,'expense',1699,'bills','bpi','PLDT Fiber');
