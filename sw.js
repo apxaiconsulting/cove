@@ -1,4 +1,4 @@
-const CACHE = 'cove-v8';
+const CACHE = 'cove-v9';
 
 // App shell — precached so cove opens offline
 const ASSETS = [
@@ -6,7 +6,8 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './icon-180.png'
 ];
 
 // Third-party files that are safe to cache (fonts + the Supabase client library).
