@@ -924,7 +924,7 @@ body.demo .demo-only{display:inline}
   <div class="chips wrap" id="jm-quick" style="margin-top:10px"></div>
   <div class="tog-hint" id="jm-hint" style="margin-top:12px"></div>
   <div id="jm-goal" style="margin-top:12px"></div>
-  <div class="btnrow"><button class="btn ghost" id="jm-edit" style="flex:0 0 auto" onclick="jmEdit()">Edit jar</button><button class="btn" id="jm-save" onclick="saveJarMove()">Add</button></div>
+  <div class="btnrow"><button class="btn ghost" id="jm-edit" style="flex:0 0 112px;width:112px" onclick="jmEdit()">Edit jar</button><button class="btn" id="jm-save" style="flex:1;min-width:0;white-space:nowrap" onclick="saveJarMove()">Add</button></div>
 </div>
 
 <!-- Installment -->
@@ -1001,8 +1001,9 @@ body.demo .demo-only{display:inline}
   <div class="body">
     <div class="pstep">
       <div class="pt">Monthly income</div>
-      <div class="ps">How much do you take home each month?</div>
-      <div class="bigmoney"><span class="sym"></span><input class="in" id="pl-income" type="text" inputmode="decimal" placeholder="0" autocomplete="off" oninput="plIncome()"></div>
+      <div class="ps">What should the plan split?</div>
+      <div class="seg" id="pl-mode" style="margin-bottom:14px"></div>
+      <div id="pl-fixed"><div class="bigmoney"><span class="sym"></span><input class="in" id="pl-income" type="text" inputmode="decimal" placeholder="0" autocomplete="off" oninput="plIncome()"></div></div>
       <div class="hint" id="pl-hint"></div>
     </div>
     <div class="pstep">
@@ -1253,7 +1254,7 @@ document.addEventListener('keydown',e=>{
   if(k==='z'&&!e.shiftKey){e.preventDefault();undo();}
   else if((k==='z'&&e.shiftKey)||k==='y'){e.preventDefault();redo();}
 });
-const hasData=d=>!!d&&((d.accounts||[]).length>0||(d.txns||[]).length>0||(d.stocks||[]).length>0||!!(d.plan&&d.plan.income));
+const hasData=d=>!!d&&((d.accounts||[]).length>0||(d.txns||[]).length>0||(d.stocks||[]).length>0||!!(d.plan&&((d.plan.commitments||[]).length||(d.plan.allocations||[]).length)));
 
 // ══════════════════════════════════
 // HELPERS
@@ -1970,14 +1971,14 @@ function renderTxForm(){
 // Income can count toward this month's plan (resets every month)
 const PLAN_CATS=['salary','freelance','business'];
 function txPlanUI(){
-  const x=ui.tx,show=x.type==='income'&&!!(db.plan&&db.plan.income)&&x.cat!=='interest';
+  const x=ui.tx,show=x.type==='income'&&hasPlan()&&x.cat!=='interest';
   $('#tx-plan-fld').hidden=!show;
   if(!show){$('#tx-plan-hint').textContent='';return;}
   if(!x.planTouched)$('#tx-plan').checked=PLAN_CATS.includes(x.cat);
   txPlanHint();
 }
 // "Put it toward" an allocation: lowers what that allocation still needs this month
-const planNames=()=>db.plan&&db.plan.income?planMath(db.plan).allocs.map(a=>a.name):[];
+const planNames=()=>hasPlan()?planMath(db.plan).allocs.map(a=>a.name):[];
 function txPA(){
   const x=ui.tx,names=planNames(),el=$('#tx-pa-fld');
   const show=names.length&&((x.type==='income'&&!$('#tx-plan-fld').hidden&&$('#tx-plan').checked)||x.type==='transfer');
@@ -2438,8 +2439,15 @@ function planIcon(name){
   const map=[[/emerg/,'shield'],[/invest|stock|etf|crypto/,'trend'],[/sav|bank|fund/,'coins'],[/travel|trip|vacat/,'plane'],[/food|eat|dine|grocer/,'food'],[/rent|hous|necess/,'home'],[/car|trans|commut/,'car'],[/health|med|gym/,'heart'],[/edu|school|book/,'book'],[/entertain|movie|fun|life|play/,'film'],[/debt|loan|credit/,'card'],[/shop|cloth/,'bag'],[/util|elec|water/,'zap'],[/internet|wifi/,'wifi'],[/phone|mobile/,'phone'],[/insur/,'lock'],[/give|gift|chari/,'gift'],[/subscr/,'sparkle']];
   return (map.find(([r])=>r.test(n))||[0,'more'])[1];
 }
-function planMath(p){
-  const income=num(p.income);
+// The plan runs on income logged this month (income marked "count toward this month's plan")
+function monthReceived(d=new Date(),skipTx=null){
+  const ym=isoDay(d).slice(0,7);
+  return sumC(db.txns.filter(t=>t.plan&&t.type==='income'&&t.date.slice(0,7)===ym&&t.id!==skipTx).map(t=>r2(toD(r2(t.amt-(t.fee||0)),txCur(t))??0)));
+}
+const hasPlan=()=>!!(db.plan&&((db.plan.commitments||[]).length||(db.plan.allocations||[]).length));
+const planIncome=(p,d=new Date(),skipTx=null)=>planMode(p)==='fixed'?num(p.income):monthReceived(d,skipTx);
+function planMath(p,inc){
+  const income=inc!==undefined?num(inc):planIncome(p);
   const cmts=sumC((p.commitments||[]).map(c=>c.type===PCT?r2(income*num(c.value)/100):num(c.value)));
   const available=income-cmts;
   const allocs=(p.allocations||[]).map((a,i)=>{const amt=a.type===REST?0:a.type===FIXED?num(a.value):r2(available*num(a.value)/100);return{name:a.name||'Allocation',amount:amt,rest:a.type===REST,color:PLAN_COLORS[i%PLAN_COLORS.length]};});
@@ -2465,12 +2473,12 @@ function renderPlan(){
 }
 function renderMyPlan(){
   const el=$('#p-body');
-  $('#p-edit').hidden=!(db.plan&&db.plan.income);
-  if(!db.plan||!db.plan.income){
-    el.innerHTML=emptyHTML('target','No plan yet','Enter your income, fixed costs, and goals to see where every paycheck should go.',`<button class="btn" onclick="openPlanner()">Create your plan</button>`);
+  $('#p-edit').hidden=!hasPlan();
+  if(!hasPlan()){
+    el.innerHTML=emptyHTML('target','No plan yet','Set your fixed expenses and how to split the rest. cove applies it to the income you log each month.',`<button class="btn" onclick="openPlanner()">Create your plan</button>`);
     return;
   }
-  const{income,cmts,available,allocs,allocated,remaining}=planMath(db.plan);
+  const{income,cmts,available,allocs,allocated,remaining}=planMath(db.plan),fixedMode=planMode(db.plan)==='fixed';
   const cmtRatio=income>0?cmts/income*100:0,saveRate=income>0?allocated/income*100:0;
   let score=10;
   if(cmtRatio>70)score-=4;else if(cmtRatio>50)score-=2;
@@ -2489,21 +2497,21 @@ function renderMyPlan(){
 
   el.innerHTML=`
     <div class="hero plan">
-      <div class="lbl">Available each month</div>
-      <div class="amt">${available<0?'−':''}${fm(available)}</div>
-      <div class="sub">${fm(income)} income − ${fm(cmts)} fixed expenses</div>
-      <div class="segbar" style="background:var(--hero-soft)">
+      <div class="lbl">${fixedMode?'Available each month':income>0?`Left for allocations in ${new Date().toLocaleDateString(loc(),{month:'long'})}`:`${new Date().toLocaleDateString(loc(),{month:'long'})} income`}</div>
+      <div class="amt">${income>0?`${available<0?'−':''}${fm(available)}`:fm(0)}</div>
+      <div class="sub">${fixedMode?`${fm(income)} income − ${fm(cmts)} fixed expenses`:income>0?`${fm(income)} came in − ${fm(cmts)} fixed expenses`:`No income logged yet this month · fixed expenses ${fm(cmts)}`}</div>
+      <div class="segbar" style="background:var(--hero-soft)${income>0?'':';display:none'}">
         ${cP?`<i style="width:${cP}%;background:var(--seg-fix)"></i>`:''}${aP?`<i style="width:${aP}%;background:var(--seg-alloc)"></i>`:''}${rP?`<i style="flex:1;background:var(--seg-free)"></i>`:''}
       </div>
-      <div class="seglg" style="color:var(--hero-ink);opacity:.75"><span><i style="background:var(--seg-fix)"></i>Fixed ${cP.toFixed(0)}%</span><span><i style="background:var(--seg-alloc)"></i>Allocated ${aP.toFixed(0)}%</span><span><i style="background:var(--seg-free)"></i>Free ${rP.toFixed(0)}%</span></div>
+      <div class="seglg" style="color:var(--hero-ink);opacity:.75${income>0?'':';display:none'}"><span><i style="background:var(--seg-fix)"></i>Fixed ${cP.toFixed(0)}%</span><span><i style="background:var(--seg-alloc)"></i>Allocated ${aP.toFixed(0)}%</span><span><i style="background:var(--seg-free)"></i>Free ${rP.toFixed(0)}%</span></div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="k">Income</div><div class="v">${fm(income)}</div></div>
+      <div class="stat"><div class="k">${fixedMode?'Income':'Came in'}</div><div class="v">${fm(income)}</div></div>
       <div class="stat"><div class="k">Fixed</div><div class="v">${fm(cmts)}</div></div>
       <div class="stat wide"><div class="k">Unallocated</div><div class="v ${r2(remaining)>=0?'pos':'neg'}">${r2(remaining)<0?'−':''}${fm(r2(remaining))}</div></div>
     </div>
     ${planMonthCard()}
-    <div class="card pad" style="margin-top:12px"><div class="score">
+    ${income>0?'':'<!--noscore-->'}<div class="card pad" style="margin-top:12px${income>0?'':';display:none'}"><div class="score">
       ${ring([{v:score/10,c:rc}],72,8,score.toFixed(1))}
       <div><div class="rt" style="color:${rc}">${rating}</div><div class="ds">${desc}</div></div>
     </div></div>
@@ -2535,7 +2543,7 @@ function renderMyPlan(){
 // This month's plan. Money tagged to an allocation ("put it toward Travel") lowers what it still needs.
 // Untagged plan income covers bills first; what's left is shared across what allocations still need.
 function planMonth(d=new Date(),skipTx=null){
-  const p=db.plan||{},M=planMath(p),ym=isoDay(d).slice(0,7),names=M.allocs.map(a=>a.name);
+  const p=db.plan||{},M=planMath(p,planIncome(p,d,skipTx)),ym=isoDay(d).slice(0,7),names=M.allocs.map(a=>a.name);
   const inMonth=db.txns.filter(t=>t.date.slice(0,7)===ym&&t.id!==skipTx);
   const T=inMonth.filter(t=>t.plan&&t.type==='income');
   const val=t=>r2(toD(t.type==='income'?r2(t.amt-(t.fee||0)):t.amt,txCur(t))??0);
@@ -2556,7 +2564,7 @@ function planMonthCard(){
   const row=(k,v,cls='')=>`<div class="fl"><span>${k}</span><b class="${cls}">${v}</b></div>`;
   return`<div class="card pm" style="margin-top:12px">
     <div class="hd"><b>${now.toLocaleDateString(loc(),{month:'long'})}</b><span>Starts fresh ${next.toLocaleDateString(loc(),{month:'short',day:'numeric'})}</span></div>
-    <div class="big">${fm(pm.received)} <small>came in</small></div>
+    <div class="big">${fm(pm.received)} <small>came in so far</small></div>
     ${pm.received>0||pm.putTotal>0?`<div class="flow">
       ${pm.cmts>0?row('Bills first',billsDone?`${fm(pm.cmts)} ✓`:`${fm(pm.billsCovered)} <small>of ${fm(pm.cmts)}</small>`,billsDone?'pos':''):''}
       ${putRows.map(([n,v])=>row(`Put toward ${esc(n)}`,fm(v))).join('')}
@@ -2781,7 +2789,7 @@ function jmRender(){
   $('#jm-quick').innerHTML=q.filter(([v])=>v>0).map(([v,l])=>`<button class="chip txt" onclick="$('#jm-amt').value=groupDigits('${v}')">${l} · ${fmc(v,c)}</button>`).join('');
   $('#jm-hint').textContent=dir==='in'?`${fmc(Math.max(0,jarFree(a)),c)} in ${a.name} isn't in a jar. Your account balance stays the same — the money just gets a label.`:`It goes back to free money in ${a.name}.`;
   $('#jm-save').textContent=dir==='in'?'Add to jar':'Take out';
-  $('#jm-goal').innerHTML=g?'':`<button class="link" style="font-size:13px" onclick="jmGoal()">${ic('target')} Turn this jar into a goal</button>`;
+  $('#jm-goal').innerHTML=g?'':`<button class="link" style="font-size:13px;display:inline-flex;align-items:center;gap:6px" onclick="jmGoal()"><svg class="i" style="width:16px;height:16px"><use href="#i-target"/></svg>Turn this jar into a goal</button>`;
 }
 function jmGoal(){const{aid,jid}=ui.jm,j=findJar(aid,jid);closeSheets();ui.pTab='goals';setTimeout(()=>openGoal(null,{aid,jid,name:j.name}),250);}
 function jmEdit(){const{aid,jid}=ui.jm;closeSheets();ui.adId=aid;setTimeout(()=>openJar(jid),250);}
@@ -2858,7 +2866,7 @@ function renderInst(){
       ${act.length?`<div class="hbar"><i style="width:${total>0?((1-left/total)*100).toFixed(2):0}%"></i></div>
       <div class="hrow"><span>Next due ${shortDay(nx.m.next)}</span><span>All paid by ${shortMonth(last)}</span></div>`:''}
     </div>
-    ${act.length&&db.plan&&db.plan.income&&!(db.plan.commitments||[]).some(c=>/install/i.test(c.name))?`<button class="dashed" style="margin-top:12px" onclick="openPlanner(2)">${ic('target')}Add ${fm(monthly)} to your plan's fixed expenses</button>`:''}
+    ${act.length&&hasPlan()&&!(db.plan.commitments||[]).some(c=>/install/i.test(c.name))?`<button class="dashed" style="margin-top:12px" onclick="openPlanner(2)">${ic('target')}Add ${fm(monthly)} to your plan's fixed expenses</button>`:''}
     <div class="sec"><h2>Your installments</h2><button class="link" onclick="openInst()">Add</button></div>
     <div class="list">${order.map(x=>instRow(x.i,x.k)).join('')}</div>`;
   animateBars();
@@ -2947,13 +2955,14 @@ function plAddInst(){pl.cmts.push({name:'Installments',value:String(instMonthly(
 const pl={step:1,cmts:[],allocs:[]};
 const CMT_SUGG=['Rent','Utilities','Internet','Phone','Insurance','Transportation','Subscriptions','Loan'];
 const ALLOC_SUGG=['Savings','Investing','Emergency Fund','Travel','Lifestyle','Debt Payoff','Education'];
+const planMode=p=>p&&(p.mode||(num(p.income)>0?'fixed':'logged'));
 function openPlanner(step=1){
   const p=db.plan||{};
-  $('#pl-income').value=p.income||'';
+  pl.mode=hasPlan()?planMode(p):'logged';
+  $('#pl-income').value=pl.mode==='fixed'&&p.income?p.income:'';
   pl.cmts=(p.commitments||[]).map(c=>({...c}));
   pl.allocs=(p.allocations||[]).map(a=>({...a}));
   syncSym();plIncome();plRender('cmts');plRender('allocs');
-  if(!p.income)step=1;
   plStep(step);openSheet('sh-plan');
 }
 function plStep(n){
@@ -2966,13 +2975,18 @@ function plStep(n){
   if(pl.step===3)plLive();
 }
 function plNext(){
-  if(pl.step===1&&num($('#pl-income').value)<=0)return toast('Enter your monthly income');
+  if(pl.step===1&&pl.mode==='fixed'&&num($('#pl-income').value)<=0)return toast('Enter your monthly income');
   if(pl.step<3)return plStep(pl.step+1);
   const clean=l=>l.map(x=>({name:String(x.name||'').trim(),value:x.type===REST?'':String(x.value??''),type:x.type})).filter(x=>x.name&&(x.type===REST||num(x.value)>0));
-  db.plan={income:num($('#pl-income').value),commitments:clean(pl.cmts),allocations:clean(pl.allocs)};
-  save();closeSheets();go('plan');toast('Plan saved');
+  db.plan={mode:pl.mode,...(pl.mode==='fixed'?{income:num($('#pl-income').value)}:{}),commitments:clean(pl.cmts),allocations:clean(pl.allocs)};
+  if(!hasPlan())return toast('Add at least one fixed expense or allocation');
+  save();closeSheets();ui.pTab='plan';go('plan');toast('Plan saved');
 }
+function plMode(m){pl.mode=m;plIncome();}
 function plIncome(){
+  $('#pl-mode').innerHTML=[['logged','What I log each month'],['fixed','A fixed amount']].map(([k,l])=>`<button class="${pl.mode===k?'on':''}" onclick="plMode('${k}')">${l}</button>`).join('');
+  $('#pl-fixed').hidden=pl.mode!=='fixed';
+  if(pl.mode==='logged'){const r=monthReceived();$('#pl-hint').textContent=`Uses the income you log with "Count toward this month's plan" on. Starts fresh every month. Logged this month so far: ${fm(r)}.`;return;}
   const v=num($('#pl-income').value);
   $('#pl-hint').textContent=v>0?`About ${fm(v/30)} a day · ${fm(v*12)} a year`:'Use your monthly take-home pay after tax.';
 }
@@ -2998,7 +3012,8 @@ function plRender(kind){
 }
 function plLive(){
   if(pl.step!==3)return;
-  const m=planMath({income:$('#pl-income').value,commitments:pl.cmts,allocations:pl.allocs});
+  const m=planMath({mode:pl.mode,income:$('#pl-income').value,commitments:pl.cmts,allocations:pl.allocs});
+  if(!(m.income>0)){$('#pl-live').innerHTML=`<span>No income logged this month yet — amounts will fill in when it comes in.</span>`;return;}
   $('#pl-live').innerHTML=`<span>Available ${fm(m.available)}</span><span class="${r2(m.remaining)<0?'neg':''}">${r2(m.remaining)<0?'Over by '+fm(-m.remaining):'Left '+fm(m.remaining)}</span>`;
 }
 function plTemplate(t){
@@ -3438,7 +3453,7 @@ function makeDemoData(){
   };
   for(let i=95;i>=0;i--){
     const d=new Date(today);d.setDate(d.getDate()-i);const dom=d.getDate(),dow=d.getDay(),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-    if(dom===15||dom===last)T(d,'income',32500,'salary','bpi','Salary',{plan:true});
+    if(dom===1||dom===15)T(d,'income',32500,'salary','bpi','Salary',{plan:true});
     if(dom===10)T(d,'income',350,'freelance','wise','Upwork — logo project',{cur:'USD'});
     if(dom===5)T(d,'expense',14000,'bills','bpi','Rent');
     if(dom===18)T(d,'expense',1699,'bills','bpi','PLDT Fiber');
@@ -3462,7 +3477,7 @@ function makeDemoData(){
     settings:{ccy:'PHP',sym:'₱',loc:'en-PH',home:'PHP',onboarded:true},
     accounts,txns,
     budgets:{[bk]:{food:9000,transport:3500,groceries:12000,bills:22000,shopping:4000,fun:2500}},
-    plan:{income:65000,commitments:[{name:'Rent',value:'14000',type:FIXED},{name:'Internet',value:'1699',type:FIXED},{name:'Utilities',value:'3000',type:FIXED}],
+    plan:{mode:'logged',commitments:[{name:'Rent',value:'14000',type:FIXED},{name:'Internet',value:'1699',type:FIXED},{name:'Utilities',value:'3000',type:FIXED}],
       allocations:[{name:'Emergency Fund',value:'10',type:PCT},{name:'Investing',value:'5000',type:FIXED},{name:'Travel',value:'5',type:PCT},{name:'Lifestyle',value:'',type:REST}]},
     planLinks:{'Emergency Fund':'maya','Investing':'inv'},
     goals:[
