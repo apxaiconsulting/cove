@@ -827,9 +827,11 @@ body.demo .demo-only{display:inline}
     <div><label class="lbl" for="tr-price" id="tr-price-lbl">Price per share</label><div class="money"><span id="tr-cur">$</span><input class="in" id="tr-price" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="tradePreview()"></div></div>
   </div>
   <div class="chips wrap" id="tr-quick" style="margin-top:10px"></div>
+  <div class="fld"><label class="lbl" for="tr-fee">Transaction fee <span style="font-weight:500">(optional)</span></label><div class="money"><span id="tr-fee-cur">$</span><input class="in" id="tr-fee" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="tradePreview()"></div></div>
   <div class="fld"><label class="lbl" for="tr-date">Date</label><input class="in" type="date" id="tr-date"></div>
   <div class="fld" id="tr-acct-fld"><span class="lbl">Investment account</span><div class="chips" id="tr-accts"></div></div>
   <div class="qprev" id="tr-total"></div>
+  <div class="fld" id="tr-local-fld" hidden><label class="lbl" for="tr-local" id="tr-local-lbl">You paid in PHP</label><div class="money"><span id="tr-local-sym">₱</span><input class="in" id="tr-local" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="ui.tr.localTouched=true;tradePreview()"></div><div class="tog-hint" id="tr-local-hint"></div></div>
   <label class="tog"><input type="checkbox" id="tr-cash" onchange="ui.tr.cashTouched=true;tradePreview()"><span id="tr-cash-lbl"></span></label>
   <div class="tog-hint" id="tr-cash-hint"></div>
   <div class="mut" style="font-size:12.5px;margin-top:8px">This records the trade in cove. Place the actual order in your brokerage app.</div>
@@ -1391,7 +1393,7 @@ function investParts(id){
   }
   return{stocks,tradeCash};
 }
-function investCash(id){const a=acct(id);if(!a)return 0;return balIn(a,acctCur(a))-investParts(id).stocks;}
+function investCash(id){const a=acct(id);if(!a)return 0;return r2(balIn(a,acctCur(a))-investParts(id).stocks);}
 // Create the Investments account the first time stocks exist, and attach unassigned stocks to it
 function ensureInvestAccount(){
   const st=(db.stocks||[]).filter(s=>s.shares>0||(s.trades||[]).length);
@@ -1691,8 +1693,8 @@ function replay(s){
   let sh=0,cost=0,real=0;
   const ord=[...ensureTrades(s)].sort((a,b)=>(a.opening?-1:0)-(b.opening?-1:0)||String(a.date||'').localeCompare(String(b.date||''))||(a.ts||0)-(b.ts||0));
   for(const t of ord){
-    if(t.type==='buy'){cost=sh+t.shares>0?(cost*sh+t.price*t.shares)/(sh+t.shares):0;sh+=t.shares;}
-    else{const q=Math.min(t.shares,sh);real+=(t.price-cost)*q;sh-=q;if(sh<1e-9){sh=0;cost=0;}}
+    if(t.type==='buy'){cost=sh+t.shares>0?(cost*sh+t.price*t.shares+(t.fee||0))/(sh+t.shares):0;sh+=t.shares;}
+    else{const q=Math.min(t.shares,sh);real+=(t.price-cost)*q-(t.fee||0);sh-=q;if(sh<1e-9){sh=0;cost=0;}}
   }
   s.shares=Math.round(sh*1e6)/1e6;s.cost=s.shares>0&&cost>0?Math.round(cost*1e4)/1e4:null;s.realized=Math.round(real*100)/100;
   return s;
@@ -1729,8 +1731,8 @@ function renderStockDetail(){
     <div class="sec" style="margin-top:22px"><h2>History</h2><span class="mut" style="font-size:12.5px;font-weight:600">${hist.length} trade${hist.length===1?'':'s'}</span></div>
     <div class="list" style="box-shadow:none">${hist.map(t=>`<div class="trd">
       <span class="m"><div class="t"><span class="pill2 ${t.opening?'open':t.type}">${t.opening?'START':t.type.toUpperCase()}</span>${+t.shares.toFixed(6)} sh @ ${money(t.price,cur)}</div>
-        <div class="s">${t.opening?'Starting position':t.date?dayLabel(t.date):''}</div></span>
-      <span class="a ${t.type==='sell'?'pos':''}">${t.type==='sell'?'+':'−'}${money(t.shares*t.price,cur)}</span>
+        <div class="s">${t.opening?'Starting position':t.date?dayLabel(t.date):''}${t.fee?` · ${money(t.fee,cur)} fee`:''}${!t.opening&&t.local!=null&&t.lcur&&t.lcur!==cur?` · ${money(t.local,t.lcur)}${t.manualFx?'':' (est.)'}`:''}</div></span>
+      <span class="a ${t.type==='sell'?'pos':''}">${t.type==='sell'?'+':'−'}${money(t.type==='buy'?t.shares*t.price+(t.fee||0):t.shares*t.price-(t.fee||0),cur)}</span>
       <button class="x" onclick="delTrade('${t.id}')" aria-label="Delete trade">${ic('x')}</button>
     </div>`).join('')||'<div class="empty" style="padding:18px">No trades yet.</div>'}</div>
     <button class="link" style="display:block;margin:18px auto 4px;color:var(--neg)" onclick="delStock()">Remove ${esc(s.ticker)} from cove</button>`;
@@ -1762,11 +1764,11 @@ function openTrade(type,id){
   if(s)ensureTrades(s);
   const invs=db.accounts.filter(a=>a.type==='invest');
   ui.tr={type,id:s?.id||null,back:!!s,market:s?.market||ui.lastMarket||(db.settings.ccy==='PHP'?'PH':'US'),
-    aid:(s&&acct(s.aid)?s.aid:null)||(ui.tradeAid&&acct(ui.tradeAid)?ui.tradeAid:null)||invs[0]?.id||null,cashTouched:false};
+    aid:(s&&acct(s.aid)?s.aid:null)||(ui.tradeAid&&acct(ui.tradeAid)?ui.tradeAid:null)||invs[0]?.id||null,cashTouched:false,localTouched:false};
   ui.tradeAid=null;
   $('#tr-ticker-fld').hidden=!!s;$('#tr-market-fld').hidden=!!s;
   $('#tr-ticker').value=s?s.ticker:'';
-  $('#tr-shares').value='';
+  $('#tr-shares').value='';$('#tr-fee').value='';$('#tr-local').value='';
   tradeQ=s&&mkt(s).cur==='USD'?quotes[s.ticker]||null:null;
   $('#tr-price').value=s?(priceOf(s).c||''):'';
   $('#tr-date').value=isoDay(new Date());
@@ -1774,7 +1776,7 @@ function openTrade(type,id){
   if(matchMedia('(pointer:fine)').matches)setTimeout(()=>(s?$('#tr-shares'):$('#tr-ticker')).focus(),320);
 }
 function setTradeType(t){ui.tr.type=t;renderTradeForm();}
-function setTradeMarket(m){ui.tr.market=m;ui.lastMarket=m;tradeQ=null;$('#tr-price').value='';renderTradeForm();tradeLookup();}
+function setTradeMarket(m){ui.tr.market=m;ui.tr.localTouched=false;$('#tr-local').value='';ui.lastMarket=m;tradeQ=null;$('#tr-price').value='';renderTradeForm();tradeLookup();}
 function tradeStock(){
   const t=cleanTicker($('#tr-ticker').value);
   return ui.tr.id?(db.stocks||[]).find(x=>x.id===ui.tr.id):(db.stocks||[]).find(x=>x.ticker===t&&(x.market||'US')===ui.tr.market);
@@ -1784,7 +1786,7 @@ function renderTradeForm(){
   $('#tr-title').textContent=(x.type==='buy'?'Buy ':'Sell ')+(s?s.ticker:'stock');
   $('#tr-types').innerHTML=[['buy','Buy'],['sell','Sell']].map(([k,l])=>`<button class="${x.type===k?'on':''}" onclick="setTradeType('${k}')">${l}</button>`).join('');
   $('#tr-markets').innerHTML=Object.entries(MARKETS).map(([k,v])=>`<button class="${x.market===k?'on':''}" onclick="setTradeMarket('${k}')">${v.flag} ${k==='US'?'US stocks':'PH stocks'}</button>`).join('');
-  $('#tr-cur').textContent=m.cur==='USD'?'$':'₱';
+  $('#tr-cur').textContent=m.cur==='USD'?'$':'₱';$('#tr-fee-cur').textContent=m.cur==='USD'?'$':'₱';
   $('#tr-price-lbl').textContent=`Price per share (${m.cur})`;
   $('#tr-ticker').placeholder=x.market==='PH'?'e.g. JFC, SM, BDO, ALI':'e.g. AAPL, NVDA, VOO';
   $('#tr-shares-lbl').textContent=x.type==='sell'&&s?`Shares (you own ${+s.shares.toFixed(6)})`:'Shares';
@@ -1819,20 +1821,30 @@ function tradePreview(){
     else if(q){const d=q.pc?(q.c-q.pc)/q.pc*100:0;pv.innerHTML=`<b>${esc(t)}</b> live ${usd(q.c)} <span class="${d>0?'pos':d<0?'neg':''}">${pct(d)}</span> <button class="link" style="margin-left:6px" onclick="$('#tr-price').value=${q.c};tradePreview()">Use price</button>`;}
     else pv.textContent=pricesOn()?'Looking up price…':'Enter the price you paid.';
   }
-  const tot=$('#tr-total');
-  if(!(sh>0&&px>0)){tot.textContent=x.type==='buy'?'Enter shares and price to see the total.':'Enter shares and price to see what you get back.';return;}
-  const amt=sh*px,amtL=cur!==db.settings.ccy?toLocal(amt,cur):null;let extra='';
-  if(x.type==='buy'&&s&&s.shares>0){const nc=(s.cost*s.shares+amt)/(s.shares+sh);extra=` · new avg cost <b>${money(nc,cur)}</b>`;}
+  const tot=$('#tr-total'),fee=r2(num($('#tr-fee').value)),a=acct(x.aid),ac=a?acctCur(a):disp(),lf=$('#tr-local-fld');
+  lf.hidden=cur===ac;
+  if(!(sh>0&&px>0)){tot.textContent=x.type==='buy'?'Enter shares and price to see the total.':'Enter shares and price to see what you get back.';$('#tr-local-hint').textContent='';tradeCashUI(null);return;}
+  const gross=r2(sh*px),total=x.type==='buy'?r2(gross+fee):r2(gross-fee);let extra='';
+  if(x.type==='buy'&&s&&s.shares>0){const nc=(s.cost*s.shares+gross+fee)/(s.shares+sh);extra=` · new avg cost <b>${money(nc,cur)}</b>`;}
   if(x.type==='sell'&&s){
     if(sh>s.shares+1e-9){tot.innerHTML=`<span class="neg">You only own ${+s.shares.toFixed(6)} ${esc(s.ticker)}.</span>`;return;}
-    if(s.cost){const g=(px-s.cost)*sh;extra=` · <span class="${g>=0?'pos':'neg'}">${g>=0?'+':'−'}${money(Math.abs(g),cur)} ${g>=0?'profit':'loss'}</span>`;}
+    if(s.cost){const g=(px-s.cost)*sh-fee;extra=` · <span class="${g>=0?'pos':'neg'}">${g>=0?'+':'−'}${money(Math.abs(g),cur)} ${g>=0?'profit':'loss'}</span>`;}
   }
-  tot.innerHTML=`${x.type==='buy'?'Total cost':'You receive'} <b>${money(amt,cur)}</b>${amtL!=null?' ('+fm(amtL)+')':''}${extra}`;
-  tradeCashUI(amt,cur);
+  tot.innerHTML=`${x.type==='buy'?'Total cost':'You receive'} <b>${money(total,cur)}</b>${fee>0?` <span class="mut">(${money(gross,cur)} ${x.type==='buy'?'+':'−'} ${money(fee,cur)} fee)</span>`:''}${extra}`;
+  let local=null;
+  if(!lf.hidden){
+    $('#tr-local-lbl').textContent=x.type==='buy'?`You paid in ${ac}`:`You received in ${ac}`;$('#tr-local-sym').textContent=curSym(ac);
+    const auto=conv(total,cur,ac);
+    if(!ui.tr.localTouched)$('#tr-local').value=auto!=null?groupDigits(String(r2(auto))):'';
+    local=r2(num($('#tr-local').value));
+    const today=conv(1,cur,ac),rate=total>0&&local>0?local/total:null;
+    $('#tr-local-hint').textContent=(rate?`That's ${curSym(ac)}${(+rate.toFixed(4)).toLocaleString()} per ${curSym(cur)}1. `:'')+(ui.tr.localTouched?(today?`Today's rate is ${curSym(ac)}${(+today.toFixed(4)).toLocaleString()}.`:''):`Using today's rate — change it to exactly what your broker ${x.type==='buy'?'charged':'paid out'}.`);
+  }else local=total;
+  tradeCashUI(local);
 }
 // Does this trade move cash in/out of the investment account?
-function tradeCashUI(amt,cur){
-  const x=ui.tr,a=acct(x.aid),name=a?a.name:'Investments',cash=a?investCash(a.id):0,ac=acctCur(a),amtL=amt!=null?conv(amt,cur,ac):null;
+function tradeCashUI(amtL){
+  const x=ui.tr,a=acct(x.aid),name=a?a.name:'Investments',cash=a?investCash(a.id):0,ac=acctCur(a);
   const cb=$('#tr-cash'),hint=$('#tr-cash-hint');
   if(!x.cashTouched)cb.checked=x.type==='sell'?true:(amtL!=null?cash>=amtL-0.005&&cash>0:cash>0);
   $('#tr-cash-lbl').textContent=x.type==='buy'?`Pay with cash in ${name}`:`Add the proceeds to ${name} cash`;
@@ -1859,9 +1871,12 @@ function saveTrade(){
   if(!aid)aid=(db.accounts.find(a=>a.type==='invest')||createInvestAccount()).id;
   if(!s){s={id:uid(),ticker:t,market:x.market,aid,shares:0,cost:null,realized:0,trades:[]};db.stocks.push(s);}
   s.aid=aid;
-  const cur=MARKETS[s.market||'US'].cur,lcur=acctCur(acct(aid)),local=conv(sh*px,cur,lcur);
-  ensureTrades(s).push({id:uid(),type:x.type,shares:sh,price:px,date:$('#tr-date').value||isoDay(new Date()),ts:Date.now(),
-    cash:$('#tr-cash').checked&&local!=null,local:local!=null?Math.round(local*100)/100:null,lcur});
+  const cur=MARKETS[s.market||'US'].cur,lcur=acctCur(acct(aid)),fee=r2(num($('#tr-fee').value)),total=x.type==='buy'?r2(sh*px+fee):r2(sh*px-fee);
+  if(x.type==='sell'&&total<0)return toast('The fee is more than the sale');
+  let local=cur===lcur?total:(ui.tr.localTouched?r2(num($('#tr-local').value)):conv(total,cur,lcur));
+  if(cur!==lcur&&ui.tr.localTouched&&!(local>0))return toast(`Enter how much you ${x.type==='buy'?'paid':'received'} in ${lcur}`);
+  ensureTrades(s).push({id:uid(),type:x.type,shares:sh,price:px,fee:fee||undefined,date:$('#tr-date').value||isoDay(new Date()),ts:Date.now(),
+    cash:$('#tr-cash').checked&&local!=null,local:local!=null?Math.round(local*100)/100:null,lcur,manualFx:cur!==lcur&&ui.tr.localTouched?true:undefined});
   if(mkt(s).cur!=='USD'||!quotes[s.ticker])s.px={c:px,at:Date.now()}; // latest known price for manual markets
   replay(s);save();buzz();
   closeSheets();
