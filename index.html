@@ -374,6 +374,14 @@ svg text{font-family:var(--font)}
 .pm .inc button{display:flex;justify-content:space-between;width:100%;padding:5px 0;text-align:left}
 .pm .inc b{color:var(--pos);font-weight:800}
 .ready{color:var(--pos);font-weight:700}
+.phrow{display:flex;justify-content:space-between;gap:10px;padding:11px 14px;font-size:14px;font-weight:700}
+.phrow+.phrow{border-top:1px solid var(--line)}
+.phrow span{color:var(--muted);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phrow b{font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.phrow small{display:block;font-size:11.5px;color:var(--muted);font-weight:600;text-align:right}
+.phsum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.saved{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--pos)}
+.saved svg.i{width:16px;height:16px}
 .jwarn{font-size:12px;font-weight:700;color:var(--warn);margin:6px 2px 0}
 .moreopt{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:13.5px;font-weight:700;color:var(--acc)}
 .moreopt svg.i{width:16px;height:16px;transition:transform .2s}
@@ -764,7 +772,7 @@ body.demo .demo-only{display:inline}
   <div class="fld" id="tx-jar-fld" hidden><span class="lbl" id="tx-jar-lbl">From a jar?</span><div class="chips wrap" id="tx-jars"></div><div class="tog-hint" id="tx-jar-hint"></div></div>
   <div class="fld" id="tx-to-fld"><span class="lbl">To</span><div class="chips" id="tx-to"></div>
     <div class="chips wrap" id="tx-tcurs" style="margin-top:8px"></div>
-    <div id="tx-tamt-fld" style="margin-top:12px"><label class="lbl" for="tx-tamt" id="tx-tamt-lbl">They receive</label><div class="money"><span id="tx-tsym"></span><input class="in" id="tx-tamt" inputmode="decimal" autocomplete="off" oninput="ui.tx.tamtTouched=true"></div><div class="tog-hint" id="tx-rate"></div></div>
+    <div id="tx-tamt-fld" style="margin-top:12px"><label class="lbl" for="tx-tamt" id="tx-tamt-lbl">They receive</label><div class="money"><span id="tx-tsym"></span><input class="in" id="tx-tamt" inputmode="decimal" autocomplete="off" oninput="ui.tx.tamtTouched=true;txAmtInput()"></div><div class="tog-hint" id="tx-rate"></div></div>
   </div>
   <div class="fld" id="tx-pa-fld" hidden><span class="lbl" id="tx-pa-lbl">Put it toward</span><div class="chips wrap" id="tx-pa"></div><div class="tog-hint" id="tx-pa-hint"></div></div>
   <div class="fld"><label class="lbl" for="tx-fee">Fee <span style="font-weight:500">(optional — bank, transfer or ATM fee)</span></label><div class="money"><span id="tx-fee-sym"></span><input class="in" id="tx-fee" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="txFeeHint()"></div><div class="tog-hint" id="tx-fee-hint"></div></div>
@@ -792,7 +800,7 @@ body.demo .demo-only{display:inline}
   <div class="fld"><span class="lbl">Type</span><div class="chips wrap" id="ac-types"></div></div>
   <div class="fld"><label class="lbl" for="ac-label">Type label <span style="font-weight:500">(optional — rename the type shown on the card)</span></label><input class="in" id="ac-label" maxlength="20" autocomplete="off" placeholder="Savings"></div>
   <div class="fld"><span class="lbl">Color</span><div class="swatches" id="ac-colors"></div></div>
-  <div class="fld"><label class="lbl" for="ac-bal" id="ac-bal-lbl">Starting balance</label><div class="money"><span id="ac-bal-sym"></span><input class="in" id="ac-bal" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div></div>
+  <div class="fld"><label class="lbl" for="ac-bal" id="ac-bal-lbl">Starting balance</label><div class="money"><span id="ac-bal-sym"></span><input class="in" id="ac-bal" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="acConvHint()"></div><div class="tog-hint" id="ac-conv-hint"></div></div>
   <div class="btnrow">
     <button class="btn danger" id="ac-del" onclick="delAcct()" aria-label="Delete account"><svg class="i"><use href="#i-trash"/></svg></button>
     <button class="btn" id="ac-save" onclick="saveAcct()">Add account</button>
@@ -996,6 +1004,9 @@ body.demo .demo-only{display:inline}
   <div id="csv-accts"></div>
   <button class="btn" id="csv-go" style="margin-top:16px" onclick="runCsvImport()">Import</button>
 </div>
+
+<!-- Saved month (plan history) -->
+<div class="sheet" id="sh-ph" role="dialog" aria-modal="true"><div class="grab"></div><div id="ph-body"></div></div>
 
 <!-- Planner -->
 <div class="sheet full" id="sh-plan" role="dialog" aria-modal="true">
@@ -1388,7 +1399,7 @@ function investParts(id){
   for(const s of db.stocks||[]){
     if(s.aid!==id)continue;
     const ac=acctCur(acct(id));
-    for(const t of s.trades||[])if(t.cash&&t.local!=null){const v=r2(conv(t.local,t.lcur||ac,ac)??t.local);tradeCash=r2(tradeCash+(t.type==='buy'?-v:v));}
+    for(const t of s.trades||[])if(t.cash&&t.local!=null&&(t.lcur||ac)===ac){const v=r2(t.local);tradeCash=r2(tradeCash+(t.type==='buy'?-v:v));}
     if(s.shares>0){const v=conv(s.shares*priceOf(s).c,mkt(s).cur,ac);if(v!=null)stocks=r2(stocks+r2(v));}
   }
   return{stocks,tradeCash};
@@ -2048,11 +2059,13 @@ function txAmtInput(){
   txFeeHint();
   const x=ui.tx;if(x.type!=='transfer'){$('#tx-tamt-fld').hidden=true;return;}
   const cross=x.tcur&&x.tcur!==x.cur;$('#tx-tamt-fld').hidden=!cross;if(!cross)return;
-  $('#tx-tamt-lbl').textContent=`${acct(x.tid)?.name||'They'} receive${acct(x.tid)?.name?'s':''} (${x.tcur})`;
+  $('#tx-tamt-lbl').textContent=`${acct(x.tid)?.name||'They'} receive${acct(x.tid)?.name?'s':''} (${x.tcur})`;$('#tx-tamt').placeholder='0.00';
   $('#tx-tsym').textContent=curSym(x.tcur);
   const r=conv(1,x.cur,x.tcur);
-  if(!x.tamtTouched){const v=conv(num($('#tx-amt').value),x.cur,x.tcur);$('#tx-tamt').value=v?Math.round(v*100)/100:'';}
-  $('#tx-rate').textContent=r?`Today's rate: 1 ${x.cur} = ${(+r.toPrecision(5)).toLocaleString()} ${x.tcur}. Change it to match what actually arrived.`:'Enter the amount that arrived.';
+
+  const pair=(q,a,b)=>q>=1?`${curSym(a)}1 = ${curSym(b)}${(+q.toFixed(4)).toLocaleString()}`:`${curSym(b)}1 = ${curSym(a)}${(+(1/q).toFixed(4)).toLocaleString()}`;
+  const sent=num($('#tx-amt').value),got=num($('#tx-tamt').value);
+  $('#tx-rate').textContent=sent>0&&got>0?`That's ${pair(got/sent,x.cur,x.tcur)}.`:`Type the exact ${x.tcur} amount that arrived.`;
 }
 function pickFrom(id){ui.tx.aid=id;ui.tx.cur=null;ui.tx.jid=null;ui.tx.tamtTouched=false;if(ui.tx.tid===id&&acctCurs(acct(id)).length<2)ui.tx.tid=db.accounts.find(a=>a.id!==id)?.id||null;renderTxForm();}
 function pickTo(id){ui.tx.tid=id;ui.tx.tcur=null;ui.tx.tamtTouched=false;renderTxForm();}
@@ -2103,6 +2116,7 @@ function openAcct(id){
   $('#ac-bal-sym').textContent=curSym(ccy);
   const curBal=a?(a.type==='invest'?investCash(a.id):balIn(a,acctCur(a))):0;
   $('#ac-bal').value=a?(Math.round((isDebt(a.type)?Math.abs(curBal):curBal)*100)/100||''):'';
+  ui.ac.orig=a?acctCur(a):null;ui.ac.oldBal=a?curBal:0;$('#ac-conv-hint').textContent='';
   $('#ac-del').hidden=!a;
   $('#ac-save').textContent=a?'Save changes':'Add account';
   syncSym();renderAcctForm();openSheet('sh-acct');
@@ -2111,21 +2125,59 @@ function renderAcctForm(){
   const s=ui.ac;
   $('#ac-label').placeholder=ATYPES[s.type]||'';
   if(!s.id){const L=banksFor(s.ccy);$('#ac-bcat').innerHTML=bankCats(s.cat,'acCat',L);$('#ac-banks').innerHTML=bankRows(s.cat,s.q,s.bank,'pickBank',L);}
-  $('#ac-bal-lbl').textContent=isDebt(s.type)?'Amount owed now':s.type==='invest'?'Cash in this account now':'Current balance';
+  $('#ac-bal-lbl').textContent=(isDebt(s.type)?'Amount owed now':s.type==='invest'?'Cash in this account now':'Current balance')+(s.id&&s.ccy!==s.orig?` (in ${s.ccy})`:'');
+  acConvHint();
   $('#ac-types').innerHTML=Object.entries(ATYPES).map(([k,l])=>`<button class="chip txt ${s.type===k?'on':''}" onclick="ui.ac.type='${k}';renderAcctForm()">${l}</button>`).join('');
   const colors=ACOLORS.includes(s.color)?ACOLORS:[s.color,...ACOLORS];
   $('#ac-colors').innerHTML=colors.map(c=>`<button class="sw ${s.color===c?'on':''}" style="--c:${esc(c)}" onclick="ui.ac.color='${esc(c)}';ui.ac.fg='#fff';renderAcctForm()" aria-label="Color ${esc(c)}">${s.color===c?ic('check'):''}</button>`).join('');
 }
-function acCcy(c){ui.ac.ccy=c;$('#ac-ccy').value=c;$('#ac-bal-sym').textContent=curSym(c);if(!ui.ac.id){ui.ac.bank=null;ui.ac.q='';$('#ac-bq').value='';ui.ac.cat=banksFor(c)[0]?.cat||'wallet';}renderAcctForm();}
+function acCcy(c){ui.ac.ccy=c;$('#ac-ccy').value=c;$('#ac-bal-sym').textContent=curSym(c);
+  if(ui.ac.id){const o=ui.ac.orig,v=ui.ac.oldBal,abs=x=>isDebt(ui.ac.type)?Math.abs(x):x;
+    if(c===o)$('#ac-bal').value=Math.round(abs(v)*100)/100||'';
+    else $('#ac-bal').value='';}if(!ui.ac.id){ui.ac.bank=null;ui.ac.q='';$('#ac-bq').value='';ui.ac.cat=banksFor(c)[0]?.cat||'wallet';}renderAcctForm();}
+// Switching an existing account to another currency: what its money becomes
+function acConvHint(){
+  const s=ui.ac,h=$('#ac-conv-hint');if(!h)return;
+  if(!s.id||s.ccy===s.orig){h.textContent='';h.classList.remove('warn');return;}
+  const v=Math.abs(num($('#ac-bal').value)),o=Math.abs(s.oldBal);
+  const pair=(r,a,b)=>r>=1?`${curSym(a)}1 = ${curSym(b)}${(+r.toFixed(4)).toLocaleString()}`:`${curSym(b)}1 = ${curSym(a)}${(+(1/r).toFixed(4)).toLocaleString()}`;
+  h.textContent=o>0?`Type how much your ${fmc(o,s.orig)} is in ${s.ccy}.${v>0?` That's ${pair(v/o,s.orig,s.ccy)}.`:''} Past transactions keep their ${s.orig} amounts.`
+    :`Past transactions keep their ${s.orig} amounts. New ones will be in ${s.ccy}.`;
+}
 function acCat(c){ui.ac.cat=c;ui.ac.q='';$('#ac-bq').value='';renderAcctForm();}
 function pickBank(id){
   const b=banksFor(ui.ac.ccy).find(x=>x.id===id);if(!b)return;
   Object.assign(ui.ac,{bank:id,color:b.bg,fg:b.fg,type:b.type,abbr:b.abbr});
   $('#ac-name').value=b.name;renderAcctForm();
 }
+function switchAcctCurrency(a,nw,typed){
+  const old=acctCur(a);
+  // 1) pin every past transaction and trade to the old currency so nothing gets re-read as the new one
+  for(const t of db.txns){
+    if(t.type==='transfer'&&(t.aid===a.id||t.tid===a.id)&&t.tamt==null&&txCur(t)!==txTCur(t))t.tamt=txTAmt(t);
+    if(t.aid===a.id&&!t.cur)t.cur=old;
+    if(t.type==='transfer'&&t.tid===a.id&&!t.tcur)t.tcur=old;
+  }
+  for(const st of db.stocks||[])if(st.aid===a.id)for(const tr of st.trades||[])if(!tr.lcur)tr.lcur=old;
+  // 2) the new currency becomes primary (an existing pocket in it is merged in)
+  const pk=(a.pockets||[]).find(p=>p.ccy===nw);
+  a.pockets=(a.pockets||[]).filter(p=>p.ccy!==nw&&p.ccy!==old);
+  a.ccy=nw;a.bal=pk?pk.bal:0;
+  // 3) today's balance in the new currency is exactly what the person typed
+  const now=a.type==='invest'?investCash(a.id):balIn(a,nw);
+  a.bal=r2(a.bal+typed-now);
+}
 function saveAcct(){
   const s=ui.ac,name=$('#ac-name').value.trim();
   if(!name)return toast('Enter an account name');
+  if(s.id&&s.orig&&s.ccy!==s.orig){
+    if($('#ac-bal').value.trim()==='')return toast(`Enter the balance in ${s.ccy}`);
+    let typed=r2(num($('#ac-bal').value));if(isDebt(s.type))typed=-Math.abs(typed);
+    const a0=acct(s.id),label=$('#ac-label').value.trim().slice(0,20);
+    switchAcctCurrency(a0,s.ccy,typed);
+    Object.assign(a0,{name,bg:s.color,fg:s.fg,type:s.type,label});
+    save();closeSheets();refresh();toast(`${name} is now in ${s.ccy}`);return;
+  }
   let bal=Math.round(num($('#ac-bal').value)*100)/100;
   if(isDebt(s.type))bal=-Math.abs(bal); // money owed is stored as a negative balance
   if(s.id){ // user typed today's balance → back out the effect of recorded transactions to get the starting balance
@@ -2540,7 +2592,9 @@ function renderMyPlan(){
       const pct=available>0?Math.min(100,a.amount/available*100):0;
       const la=links[a.name]?acct(links[a.name]):null;
       const linkUI=la?`<div class="linkrow">${logo(la,28)}<span class="nm">${esc(la.name)}</span>
-          <button class="btn sm" onclick="depositAlloc(${a.i})">Deposit ${fm(a.amount)}</button>
+          ${pmr.allocs[a.i]&&pmr.allocs[a.i].amount>0&&pmr.put[a.i]>0&&pmr.toPut[a.i]<=0
+            ?`<button class="btn sm ghost" disabled style="opacity:.75;color:var(--pos)">${ic('check')}Done</button><button class="btn sm ghost" onclick="editAllocDeposit(${a.i})">Edit</button>`
+            :`<button class="btn sm" onclick="depositAlloc(${a.i})">Deposit ${fm(pmr.put[a.i]>0?pmr.toPut[a.i]:a.amount)}</button>`}
           <button class="x" onclick="unlinkAlloc(${a.i})" aria-label="Unlink">${ic('x')}</button></div>`
         :`<button class="linkbtn" onclick="this.nextElementSibling.classList.toggle('open')">${ic('link')}Link to an account</button>
           <div class="picker">${db.accounts.length?db.accounts.map(x=>`<button class="chip" onclick="linkAlloc(${a.i},'${x.id}')">${logo(x,28)}<span class="tx2"><div>${esc(x.name)}</div><small>${fmc(acctBal(x.id),acctCur(x))}</small></span></button>`).join(''):'<span class="mut" style="font-size:13px">Add an account on Home first.</span>'}</div>`;
@@ -2550,7 +2604,8 @@ function renderMyPlan(){
         <div class="bar"><i style="--c:${a.color}" data-w="${pct}"></i></div>${linkUI}</div>`;
     }).join('')}</div>`:`<button class="dashed" onclick="openPlanner(3)">${ic('plus')}Add allocations</button>`}
     ${(db.plan.commitments||[]).length?`<div class="sec"><h2>Fixed expenses</h2><button class="link" onclick="openPlanner(2)">Edit</button></div>
-      <div class="list">${db.plan.commitments.map(c=>{const v=c.type===PCT?income*num(c.value)/100:num(c.value);return`<div class="bud" style="cursor:default"><div class="row"><span class="ico" style="--c:#94A3B8">${ic(planIcon(c.name))}</span><span class="m"><div class="t">${esc(c.name)}</div><div class="s">${c.type===PCT?num(c.value)+'% of income':'Fixed'}</div></span><span class="r"><div class="a">${fm(v)}</div></span></div></div>`;}).join('')}</div>`:''}
+      <div class="list">${db.plan.commitments.map(c=>{const v=c.type===PCT?r2(income*num(c.value)/100):num(c.value);return`<div class="bud" style="cursor:default"><div class="row"><span class="ico" style="--c:#94A3B8">${ic(planIcon(c.name))}</span><span class="m"><div class="t">${esc(c.name)}</div><div class="s">${c.type===PCT?num(c.value)+'% of income':'Fixed'}</div></span><span class="r"><div class="a">${fm(v)}</div></span></div></div>`;}).join('')}</div>`:''}
+    ${planHistoryHTML()}
   `;
   animateBars();
 }
@@ -2590,6 +2645,9 @@ function planMonthCard(){
     ${pm.T.length?`<div class="inc">${pm.T.slice().sort((a,b)=>a.date<b.date?-1:1).map(t=>`<button onclick="openTxn('${t.id}')"><span>${esc(t.note||cat(t.cid).name)} · ${dayLabel(t.date)}</span><b>+${fm(r2(toD(r2(t.amt-(t.fee||0)),txCur(t))??0))}</b></button>`).join('')}</div>`
       :`<div class="inc">When income comes in, turn on <b style="color:var(--text)">Count toward this month's plan</b> and cove splits it for you — bills first, then your allocations.</div>`}
     <button class="btn ghost sm" style="margin-top:12px;width:100%" onclick="openTxn(null,{type:'income',cat:'salary'})">${ic('plus')}Log income for the plan</button>
+    ${(()=>{const ym=isoDay(now).slice(0,7),h=(db.planHistory||[]).find(x=>x.month===ym),mon=now.toLocaleDateString(loc(),{month:'long'});
+      return h?`<div class="saved">${ic('check')}${mon} saved ${dayLabel(isoDay(new Date(h.savedAt)))}</div><button class="btn ghost sm" style="margin-top:8px;width:100%" onclick="finishMonth()">Update saved ${mon}</button>`
+        :`<button class="btn sm" style="margin-top:8px;width:100%" onclick="finishMonth()">${ic('check')}Finish ${mon} &amp; save to history</button>`;})()}
   </div>`;
 }
 function allocMonthTxt(pm,i,pct){
@@ -2599,8 +2657,63 @@ function allocMonthTxt(pm,i,pct){
   if(pm.received>0)return`<span class="ready">${fm(ready)} ready</span> this month`;
   return`${pct.toFixed(1)}% of available`;
 }
+// ── Plan history: a saved snapshot of a finished month ──
+function finishMonth(){
+  const now=new Date(),ym=isoDay(now).slice(0,7),mon=monthLabel(now),had=(db.planHistory||[]).some(x=>x.month===ym);
+  ask(had?`Update ${mon}?`:`Finish ${mon}?`,`Saves this month's income, fixed expenses and allocations to your plan history. Your plan stays as it is for next month.`,had?'Update':'Save','Cancel',false).then(ok=>{
+    if(!ok)return;
+    const p=db.plan,M=planMath(p),pm=planMonth(now),fixedMode=planMode(p)==='fixed';
+    const snap={id:uid(),month:ym,savedAt:Date.now(),mode:fixedMode?'fixed':'logged',ccy:disp(),income:M.income,received:pm.received,
+      commitments:(p.commitments||[]).map(c=>({name:c.name,amount:c.type===PCT?r2(M.income*num(c.value)/100):num(c.value)})),
+      cmts:M.cmts,available:r2(M.available),
+      allocations:M.allocs.map((a,i)=>({name:a.name,amount:a.amount,put:pm.put[i]||0,rest:a.rest})),
+      incomeTxns:pm.T.map(t=>({note:t.note||cat(t.cid).name,date:t.date,amt:r2(toD(r2(t.amt-(t.fee||0)),txCur(t))??0)}))};
+    db.planHistory=(db.planHistory||[]).filter(x=>x.month!==ym).concat(snap).sort((a,b)=>b.month.localeCompare(a.month));
+    save();renderPlan();toast(`${mon} saved to history`);
+  });
+}
+function planHistoryHTML(){
+  const H=db.planHistory||[];if(!H.length)return'';
+  return`<div class="sec"><h2>History</h2><span class="mut" style="font-size:12.5px;font-weight:600">${H.length} month${H.length>1?'s':''}</span></div>
+    <div class="list">${H.map(h=>{const d=parseDay(h.month+'-01');return`<button class="bud" onclick="openPlanHist('${h.id}')"><div class="row">
+      <span class="ico" style="--c:var(--acc)">${ic('check')}</span>
+      <span class="m"><div class="t">${monthLabel(d)}</div><div class="s">${h.allocations.length} allocation${h.allocations.length===1?'':'s'} · ${h.commitments.length} fixed</div></span>
+      <span class="r"><div class="a">${money(h.income,h.ccy)}</div><div class="s">${h.mode==='fixed'?'planned':'came in'}</div></span>
+      ${ic('chevR')}</div></button>`;}).join('')}</div>`;
+}
+function openPlanHist(id){
+  const h=(db.planHistory||[]).find(x=>x.id===id);if(!h)return;
+  const d=parseDay(h.month+'-01'),m=v=>money(v,h.ccy),alloc=sumC(h.allocations.map(a=>a.amount));
+  $('#ph-body').innerHTML=`<div class="shd"><div><h3>${monthLabel(d)}</h3><div class="mut" style="font-size:13px;font-weight:600">Saved ${dayLabel(isoDay(new Date(h.savedAt)))}</div></div><button class="iconbtn" onclick="closeSheets()" aria-label="Close">${ic('x')}</button></div>
+    <div class="phsum">
+      <div class="stat"><div class="k">${h.mode==='fixed'?'Planned income':'Came in'}</div><div class="v">${m(h.income)}</div></div>
+      <div class="stat"><div class="k">Fixed expenses</div><div class="v">${m(h.cmts)}</div></div>
+      <div class="stat"><div class="k">Allocated</div><div class="v">${m(alloc)}</div></div>
+      <div class="stat"><div class="k">Unallocated</div><div class="v">${m(Math.max(0,r2(h.available-alloc)))}</div></div>
+    </div>
+    ${h.mode==='fixed'&&h.received?`<div class="tog-hint" style="margin-top:8px">Logged income that month: ${m(h.received)}</div>`:''}
+    <div class="sec"><h2>Allocations</h2></div>
+    <div class="list">${h.allocations.map(a=>`<div class="phrow"><span>${esc(a.name)}${a.rest?' · whatever was left':''}</span><b>${m(a.amount)}${a.put?`<small>${m(a.put)} put in</small>`:''}</b></div>`).join('')||'<div class="phrow"><span>None</span></div>'}</div>
+    ${h.commitments.length?`<div class="sec"><h2>Fixed expenses</h2></div><div class="list">${h.commitments.map(c=>`<div class="phrow"><span>${esc(c.name)}</span><b>${m(c.amount)}</b></div>`).join('')}</div>`:''}
+    ${h.incomeTxns.length?`<div class="sec"><h2>Income</h2></div><div class="list">${h.incomeTxns.map(t=>`<div class="phrow"><span>${esc(t.note)} · ${dayLabel(t.date)}</span><b class="pos">+${m(t.amt)}</b></div>`).join('')}</div>`:''}
+    <button class="link" style="display:block;margin:20px auto 4px;color:var(--neg)" onclick="delPlanHist('${h.id}')">Delete this month from history</button>`;
+  openSheet('sh-ph');
+}
+async function delPlanHist(id){
+  const h=(db.planHistory||[]).find(x=>x.id===id);if(!h)return;
+  if(!await ask(`Delete ${monthLabel(parseDay(h.month+'-01'))}?`,'Removes this saved month from your history. You can bring it back with Undo.'))return;
+  db.planHistory=db.planHistory.filter(x=>x.id!==id);save();closeSheets();renderPlan();toast('Removed from history');
+}
 function linkAlloc(i,aid){db.planLinks=db.planLinks||{};db.planLinks[planAllocNames[i]]=aid;save();renderPlan();toast('Linked');}
 function unlinkAlloc(i){if(db.planLinks)delete db.planLinks[planAllocNames[i]];save();renderPlan();}
+// The deposit(s) that finished this allocation this month — Edit opens the latest one
+function editAllocDeposit(i){
+  const name=planAllocNames[i],ym=isoDay(new Date()).slice(0,7);
+  const T=db.txns.filter(t=>t.palloc===name&&t.date.slice(0,7)===ym&&(t.type==='transfer'||(t.type==='income'&&t.plan))).sort((a,b)=>(b.date.localeCompare(a.date))||((b.ts||0)-(a.ts||0)));
+  if(!T.length)return toast('No deposit found for this month');
+  openTxn(T[0].id);
+  if(T.length>1)toast(`Showing the latest of ${T.length} deposits for ${name}`);
+}
 function depositAlloc(i){
   const name=planAllocNames[i],aid=(db.planLinks||{})[name];
   const a=planMath(db.plan).allocs[i];if(!a||!acct(aid))return;
